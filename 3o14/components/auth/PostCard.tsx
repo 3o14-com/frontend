@@ -46,6 +46,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
       marginBottom: theme.spacing.small,
       color: theme.colors.text,
     },
+    counter: {
+      color: theme.colors.text,
+    },
   });
 
   const renderMediaAttachments = () =>
@@ -86,7 +89,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
       {post.media_attachments.length > 0 && <View style={styles.media}>{renderMediaAttachments()}</View>}
       {post.poll && renderPoll()}
       {renderBoost()}
-      <Text>❤️ {post.favourites_count} 🔄 {post.reblogs_count} 💬 {post.replies_count}</Text>
+      <Text style={styles.counter}>❤️ {post.favourites_count} 🔄 {post.reblogs_count} 💬 {post.replies_count}</Text>
     </View>
   );
 };
