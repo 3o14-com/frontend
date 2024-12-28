@@ -13,20 +13,21 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [page, setPage] = useState(1);
+  const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { logout } = useAuth();
   const theme = useTheme();
 
-  const fetchHomeTimeline = async (pageNumber = 1) => {
+  const fetchHomeTimeline = async () => {
     try {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not found');
 
-      const data = await ApiService.getHomeTimeline(server, pageNumber);
+      const data = await ApiService.getHomeTimeline(server, maxId || undefined);
+
       if (data.length > 0) {
-        setPosts((prevPosts) => [...prevPosts, ...data.slice(0, 10)]);
-        if (data.length < 10) setHasMore(false);
+        setPosts((prevPosts) => [...prevPosts, ...data]);
+        setMaxId(data[data.length - 1].id);
       } else {
         setHasMore(false);
       }
@@ -46,8 +47,7 @@ export default function Home() {
   const handleLoadMore = () => {
     if (!isFetchingMore && hasMore) {
       setIsFetchingMore(true);
-      setPage((prevPage) => prevPage + 1);
-      fetchHomeTimeline(page + 1);
+      fetchHomeTimeline();
     }
   };
 
