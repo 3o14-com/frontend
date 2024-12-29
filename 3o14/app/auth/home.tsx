@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { PostCard } from '@/components/auth/PostCard';
 import { TouchableButton } from '@/components/common/Button';
 import { Loading } from '@/components/common/Loading';
@@ -12,21 +12,22 @@ import type { Post } from '@/types/api';
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const { logout } = useAuth();
   const theme = useTheme();
 
-  const fetchHomeTimeline = async () => {
+  const fetchHomeTimeline = async (refresh = false) => {
     try {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not found');
 
-      const data = await ApiService.getHomeTimeline(server, maxId || undefined);
+      const data = await ApiService.getHomeTimeline(server, refresh ? undefined : (maxId ?? undefined));
 
       if (data.length > 0) {
-        setPosts((prevPosts) => [...prevPosts, ...data]);
+        setPosts((prevPosts) => refresh ? data : [...prevPosts, ...data]);
         setMaxId(data[data.length - 1].id);
       } else {
         setHasMore(false);
@@ -37,12 +38,20 @@ export default function Home() {
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     fetchHomeTimeline();
   }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setHasMore(true);
+    setMaxId(null);
+    fetchHomeTimeline(true);
+  };
 
   const handleLoadMore = () => {
     if (!isFetchingMore && hasMore) {
@@ -69,6 +78,14 @@ export default function Home() {
         renderItem={({ item }) => <PostCard post={item} />}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
         ListFooterComponent={isFetchingMore ? <Loading /> : null}
       />
       <TouchableButton title="Logout" onPress={logout} />

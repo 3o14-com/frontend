@@ -4,6 +4,7 @@ import { Loading } from '@/components/common/Loading';
 import * as Linking from 'expo-linking';
 import { StorageService } from '@/services/storage';
 import { useRouter } from 'expo-router';
+import { Platform } from 'react-native';
 
 export default function Auth() {
   const { handleAuthCode } = useAuth();
@@ -15,15 +16,48 @@ export default function Auth() {
         const server = await StorageService.get('server');
         if (!server) throw new Error('Server URL not found.');
 
-        const initialUrl = await Linking.getInitialURL();
-        if (!initialUrl) throw new Error('No URL found.');
+        if (Platform.OS === 'web') {
+          const { queryParams } = Linking.parse(window.location.href);
+          const authorizationCode = queryParams?.code;
+          if (authorizationCode) {
+            await handleAuthCode(authorizationCode, server);
+            return;
+          }
+          router.replace('/');
+        } else {
+          try {
+            const initialUrl = await Linking.getInitialURL();
+            if (initialUrl) {
+              const { queryParams } = Linking.parse(initialUrl);
+              const authorizationCode = queryParams?.code;
+              if (authorizationCode) {
+                await handleAuthCode(authorizationCode, server);
+                return;
+              }
+            }
 
-        const { queryParams } = Linking.parse(window.location.href);
-        const authorizationCode = queryParams?.code;
+            const subscription = Linking.addEventListener('url', async (event) => {
+              const { queryParams } = Linking.parse(event.url);
+              const authorizationCode = queryParams?.code;
+              if (authorizationCode) {
+                await handleAuthCode(authorizationCode, server);
+                subscription.remove();
+              }
+            });
 
-        await handleAuthCode(authorizationCode, server);
-      } catch (error) {
-        console.error('Auth error:', error);
+            return () => {
+              subscription.remove();
+            };
+          } catch (err) {
+            console.warn('Deep link processing warning:', err);
+          }
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error('Auth error:', err.message);
+        } else {
+          console.error('Auth error:', String(err));
+        }
         router.replace('/');
       }
     };
