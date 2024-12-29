@@ -3,6 +3,7 @@ export interface Account {
   username: string;
   display_name: string;
   avatar: string;
+  domain?: string;
 }
 
 export interface MediaAttachment {
@@ -33,4 +34,6 @@ export interface Post {
   favourites_count: number;
   replies_count: number;
   reblog?: Post;
+  favourited?: boolean;
+  reblogged?: boolean;
 }
