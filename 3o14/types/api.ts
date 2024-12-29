@@ -3,7 +3,7 @@ export interface Account {
   username: string;
   display_name: string;
   avatar: string;
-  domain?: string;
+  acct?: string;
 }
 
 export interface MediaAttachment {

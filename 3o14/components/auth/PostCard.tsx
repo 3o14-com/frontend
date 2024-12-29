@@ -18,15 +18,15 @@ LogBox.ignoreLogs([
 interface PostCardProps {
   post: Post;
   onLike?: (post: Post) => void;
-  onRepost?: (post: Post) => void;
+  onReblog?: (post: Post) => void;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onRepost }) => {
+export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) => {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const [server, setServer] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(post.favourited || false);
-  const [isReposted, setIsReposted] = useState(post.reblogged || false);
+  const [isReblogged, setIsReblogged] = useState(post.reblogged || false);
   const [favouritesCount, setFavouritesCount] = useState(post.favourites_count || 0);
   const [reblogsCount, setReblogsCount] = useState(post.reblogs_count || 0);
 
@@ -60,26 +60,26 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onRepost }) =>
     }
   };
 
-  const handleRepost = async () => {
+  const handleReblog = async () => {
     try {
       if (!server) return Alert.alert('Error', 'Server not configured');
 
       // Optimistically update the UI
-      setIsReposted(!isReposted);
-      setReblogsCount((prev) => (isReposted ? prev - 1 : prev + 1));
+      setIsReblogged(!isReblogged);
+      setReblogsCount((prev) => (isReblogged ? prev - 1 : prev + 1));
 
-      if (!isReposted) {
+      if (!isReblogged) {
         await ApiService.reblog(server, post.id);
       } else {
         await ApiService.unreblog(server, post.id);
       }
 
-      onRepost && onRepost(post);
+      onReblog && onReblog(post);
     } catch (error) {
       // Revert UI changes if API call fails
-      setIsReposted(!isReposted);
-      setReblogsCount((prev) => (isReposted ? prev + 1 : prev - 1));
-      Alert.alert('Error', 'Failed to repost/un-repost the post');
+      setIsReblogged(!isReblogged);
+      setReblogsCount((prev) => (isReblogged ? prev + 1 : prev - 1));
+      Alert.alert('Error', 'Failed to reblog/un-reblog the post');
     }
   };
 
@@ -154,11 +154,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onRepost }) =>
       justifyContent: 'center',
     },
     likedButton: {
-      backgroundColor: theme.colors.primary,
-      //borderColor: theme.colors.primary,
+      borderColor: theme.colors.text,
     },
-    repostedButton: {
-      backgroundColor: theme.colors.primary,
+    rebloggedButton: {
+      borderColor: theme.colors.text,
     },
     actionButtonText: {
       color: theme.colors.primary,
@@ -223,7 +222,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onRepost }) =>
         <View>
           <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
           <Text style={styles.username}>
-            @{post.account.username} <Text style={styles.fediverseId}>({post.account.username}@{post.account.domain || 'unknown'})</Text>
+            @{post.account.username} <Text style={styles.fediverseId}>({post.account.acct})</Text>
           </Text>
         </View>
       </View>
@@ -264,10 +263,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onRepost }) =>
           <Text style={styles.actionButtonText}>{isLiked ? 'Unlike' : 'Like'}</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionButton, isReposted && styles.repostedButton]}
-          onPress={handleRepost}
+          style={[styles.actionButton, isReblogged && styles.rebloggedButton]}
+          onPress={handleReblog}
         >
-          <Text style={styles.actionButtonText}>{isReposted ? 'Undo Repost' : 'Repost'}</Text>
+          <Text style={styles.actionButtonText}>{isReblogged ? 'Undo Reblog' : 'Reblog'}</Text>
         </TouchableOpacity>
       </View>
 
