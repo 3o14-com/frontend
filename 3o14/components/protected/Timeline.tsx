@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, Alert, RefreshControl } from 'react-native';
-import { PostCard } from '@/components/auth/PostCard';
-import { TouchableButton } from '@/components/common/Button';
+import { View, FlatList, StyleSheet, StatusBar, Alert, RefreshControl } from 'react-native';
+import { PostCard } from '@/components/protected/PostCard';
 import { Loading } from '@/components/common/Loading';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
@@ -9,31 +8,47 @@ import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import type { Post } from '@/types/api';
 
-export default function Home() {
+type TimelineType = 'home' | 'local';
+
+interface TimelineProps {
+  type: TimelineType;
+}
+
+export function Timeline({ type }: TimelineProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
+
   const { logout } = useAuth();
   const theme = useTheme();
 
-  const fetchHomeTimeline = async (refresh = false) => {
+  const fetchTimeline = async (refresh = false) => {
     try {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not found');
 
-      const data = await ApiService.getHomeTimeline(server, refresh ? undefined : (maxId ?? undefined));
+      const fetchFunction = type === 'home'
+        ? ApiService.getHomeTimeline
+        : ApiService.getLocalTimeline;
+
+      const data = await fetchFunction(server, refresh ? undefined : (maxId ?? undefined));
 
       if (data.length > 0) {
-        setPosts((prevPosts) => refresh ? data : [...prevPosts, ...data]);
+        setPosts(prevPosts => refresh ? data : [...prevPosts, ...data]);
         setMaxId(data[data.length - 1].id);
       } else {
         setHasMore(false);
       }
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to fetch home feed.');
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : `Failed to fetch ${type} timeline.`
+      );
       logout();
     } finally {
       setIsLoading(false);
@@ -43,20 +58,20 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchHomeTimeline();
-  }, []);
+    fetchTimeline();
+  }, [type]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     setHasMore(true);
     setMaxId(null);
-    fetchHomeTimeline(true);
+    fetchTimeline(true);
   };
 
   const handleLoadMore = () => {
     if (!isFetchingMore && hasMore) {
       setIsFetchingMore(true);
-      fetchHomeTimeline();
+      fetchTimeline();
     }
   };
 
@@ -72,6 +87,10 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={theme.colors.background === '#ffffff' ? 'dark-content' : 'light-content'}
+        backgroundColor={theme.colors.background}
+      />
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -88,7 +107,6 @@ export default function Home() {
         }
         ListFooterComponent={isFetchingMore ? <Loading /> : null}
       />
-      <TouchableButton title="Logout" onPress={logout} />
     </View>
   );
 }

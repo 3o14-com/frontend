@@ -1,20 +1,47 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
-import { useAuthState } from '@/hooks/authState';
+import { StorageService } from '@/services/storage';
 import { Loading } from '@/components/common/Loading';
 
 export default function RootLayout() {
-  const { isLoading } = useAuthState();
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    // Perform initial auth check without navigation
+    const checkInitialAuth = async () => {
+      try {
+        const [] = await Promise.all([
+          StorageService.get('accessToken'),
+          StorageService.get('server')
+        ]);
+
+        // Set initial state complete regardless of auth status
+        setInitialLoadComplete(true);
+      } catch (error) {
+        console.error('Initial auth check error:',
+          error instanceof Error ? error.message : String(error)
+        );
+        setInitialLoadComplete(true);
+      }
+    };
+
+    checkInitialAuth();
+  }, []);
+
+  if (!initialLoadComplete) {
     return <Loading />;
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/home" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="auth" />
+      <Stack.Screen
+        name="protected/index"
+        options={{
+          // Add any protected route specific options here
+        }}
+      />
     </Stack>
   );
 }

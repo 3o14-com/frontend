@@ -72,7 +72,7 @@ export const useAuth = () => {
     }
 
     await StorageService.set('accessToken', tokenData.access_token);
-    router.push('/auth/home');
+    router.push('/protected');
   };
 
   const logout = useCallback(async () => {

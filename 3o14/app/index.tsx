@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, ScrollView, StyleSheet, StatusBar, Dimensions } from 'react-native';
-import { LoginForm } from '@/components/auth/LoginForm';
+import { LoginForm } from '@/components/protected/LoginForm';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuthState } from '@/hooks/authState';
 import { Loading } from '@/components/common/Loading';

@@ -21,8 +21,8 @@ export const useAuthState = () => {
       if (accessToken && server) {
         setIsAuthenticated(true);
         // Only navigate if we're not already on the home page
-        if (!currentSegments.some(segment => segment === 'home')) {
-          router.replace('/auth/home');
+        if (!currentSegments.some(segment => segment === 'protected')) {
+          router.replace('/protected');
         }
       } else {
         setIsAuthenticated(false);

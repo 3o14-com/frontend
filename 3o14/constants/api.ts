@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   TOKEN: '/oauth/token',
   AUTHORIZE: '/oauth/authorize',
   TIMELINE: '/api/v1/timelines/home',
+  PUBLIC_TIMELINE: '/api/v1/timelines/public',
   FAVOURITE: '/api/v1/statuses/{id}/favourite',
   REBLOG: '/api/v1/statuses/{id}/reblog',
   UNFAVOURITE: '/api/v1/statuses/{id}/unfavourite',
