@@ -25,8 +25,7 @@
           sdkPkgs.ndk-26-1-10909125
         ]);
 
-        cremulate =
-          pkgs.writeScriptBin "cremulate" # bash
+        cremulate = pkgs.writeScriptBin "cremulate" # bash
           ''
             #!/usr/bin/env sh
             name=$1

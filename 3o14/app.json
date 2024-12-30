@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "3o14",
-    "slug": "3014",
+    "slug": "3o14",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "3o14",
+    "scheme": "x3o14",
     "platforms": [
       "ios",
       "android",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.x3014"
+      "package": "space.scientiac.x3o14"
     },
     "web": {
       "bundler": "metro",
@@ -35,14 +35,22 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 150,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#000000"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c4143fd8-303a-4e8b-9196-7611b03a4ca2"
+      }
     }
   }
 }
