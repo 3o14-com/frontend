@@ -6,6 +6,16 @@ export interface Account {
   acct?: string;
 }
 
+export interface Context {
+  ancestors: Post[];
+  descendants: Post[];
+}
+
+export interface StatusResponse {
+  status: Post;
+  context: Context;
+}
+
 export interface MediaAttachment {
   id: string;
   type: 'image' | 'video' | 'gifv' | 'audio';
@@ -32,6 +42,7 @@ export interface Post {
   poll?: Poll;
   reblogs_count: number;
   favourites_count: number;
+  replies?: Post[];
   replies_count: number;
   reblog?: Post;
   favourited?: boolean;

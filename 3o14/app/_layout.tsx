@@ -7,15 +7,12 @@ export default function RootLayout() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
-    // Perform initial auth check without navigation
     const checkInitialAuth = async () => {
       try {
         const [] = await Promise.all([
           StorageService.get('accessToken'),
           StorageService.get('server')
         ]);
-
-        // Set initial state complete regardless of auth status
         setInitialLoadComplete(true);
       } catch (error) {
         console.error('Initial auth check error:',
@@ -24,7 +21,6 @@ export default function RootLayout() {
         setInitialLoadComplete(true);
       }
     };
-
     checkInitialAuth();
   }, []);
 
@@ -36,10 +32,12 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="auth" />
+      <Stack.Screen name="protected" />
       <Stack.Screen
-        name="protected/index"
+        name="screens"
         options={{
-          // Add any protected route specific options here
+          headerShown: false,
+          presentation: 'modal',
         }}
       />
     </Stack>

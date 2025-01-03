@@ -9,4 +9,6 @@ export const API_ENDPOINTS = {
   UNFAVOURITE: '/api/v1/statuses/{id}/unfavourite',
   UNREBLOG: '/api/v1/statuses/{id}/unreblog',
   COMMENT: '/api/v1/statuses',
+  STATUS: '/api/v1/statuses/{id}',
+  STATUS_CONTEXT: '/api/v1/statuses/{id}/context',
 };
