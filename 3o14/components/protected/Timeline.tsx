@@ -28,7 +28,11 @@ export function Timeline({ type }: TimelineProps) {
   const fetchTimeline = async (refresh = false) => {
     try {
       const server = await StorageService.get('server');
-      if (!server) throw new Error('Server not found');
+      if (!server) {
+        Alert.alert('Error', 'Server configuration not found. Please login again.');
+        logout();
+        return;
+      }
 
       const fetchFunction = type === 'home'
         ? ApiService.getHomeTimeline
@@ -43,13 +47,34 @@ export function Timeline({ type }: TimelineProps) {
         setHasMore(false);
       }
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error
-          ? error.message
-          : `Failed to fetch ${type} timeline.`
-      );
-      logout();
+      // Determine if the error is authentication-related
+      const errorMessage = error instanceof Error ? error.message : '';
+      const isAuthError = errorMessage.toLowerCase().includes('unauthorized') ||
+        errorMessage.toLowerCase().includes('forbidden') ||
+        errorMessage.includes('401') ||
+        errorMessage.includes('403');
+
+      if (isAuthError) {
+        Alert.alert(
+          'Authentication Error',
+          'Your session has expired. Please login again.',
+          [{ text: 'OK', onPress: () => logout() }]
+        );
+      } else {
+        // For network or other errors, show alert but don't logout
+        Alert.alert(
+          'Network Error',
+          'Failed to fetch timeline. Please check your connection and try again.',
+          [{
+            text: 'OK',
+            onPress: () => setIsLoading(false)
+          },
+          {
+            text: 'Retry',
+            onPress: () => fetchTimeline(refresh)
+          }],
+        );
+      }
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);
@@ -78,7 +103,6 @@ export function Timeline({ type }: TimelineProps) {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      padding: theme.spacing.large,
       backgroundColor: theme.colors.background,
     },
   });

@@ -1,4 +1,3 @@
-import { StorageService } from './storage';
 import { AUTH_CONFIG } from '@/constants/auth';
 import { API_ENDPOINTS } from '@/constants/api';
 import * as Linking from 'expo-linking';
