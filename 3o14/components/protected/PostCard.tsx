@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useRouter } from 'expo-router';
 import { Post } from '@/types/api';
 import RenderHTML, { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
 import { format } from 'date-fns';
@@ -24,6 +25,7 @@ interface PostCardProps {
 }
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
+  const router = useRouter();
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const [server, setServer] = useState<string | null>(null);
@@ -126,7 +128,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     date: {
       color: theme.colors.text,
       fontSize: 12,
-      marginTop: theme.spacing.small,
+      marginTop: theme.spacing.medium,
+      textAlign: "right",
     },
     media: {
       marginTop: theme.spacing.medium,
@@ -160,6 +163,32 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       fontSize: 16,
       marginLeft: 8,
     },
+    footerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: theme.spacing.medium,
+    },
+    dateContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    visibilityIcon: {
+      marginRight: theme.spacing.small,
+    },
+    mediaContainer: {
+      marginTop: theme.spacing.medium,
+      width: '100%',
+      backgroundColor: theme.colors.background,
+    },
+    image: {
+      width: '100%',
+      backgroundColor: theme.colors.background,
+    },
+    pressed: {
+      opacity: 0.5,
+    }
   });
 
   const renderersProps = {
@@ -185,14 +214,27 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     },
   };
 
+  const calculateImageHeight = (media: any) => {
+    const screenWidth = width - (theme.spacing.medium * 2);
+    if (media.meta?.original?.width && media.meta?.original?.height) {
+      return screenWidth * (media.meta.original.height / media.meta.original.width);
+    }
+    return screenWidth;
+  };
+
   const renderMediaAttachments = () =>
-    post.media_attachments.map((media) => (
-      <Image
-        key={media.id}
-        source={{ uri: media.preview_url }}
-        style={{ width: '100%', height: 200, marginTop: theme.spacing.small }}
-      />
-    ));
+    post.media_attachments.map((media) => {
+      const imageHeight = calculateImageHeight(media);
+      return (
+        <View key={media.id} style={styles.mediaContainer}>
+          <Image
+            source={{ uri: media.preview_url }}
+            style={[styles.image, { height: imageHeight }]}
+            resizeMode="contain"
+          />
+        </View>
+      );
+    });
 
   const renderPoll = () => (
     <View style={styles.poll}>
@@ -205,6 +247,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   );
 
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
+
+  const handlePostPress = () => {
+    router.push(`/screens/thread/${post.id}`);
+  };
 
   const renderContent = () => {
     if (post.reblog && !isBoost) {
@@ -271,8 +317,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        pressed && styles.pressed
+      ]}
+      onPress={handlePostPress}
+    >
       {renderContent()}
-    </View>
+    </Pressable>
   );
 };
