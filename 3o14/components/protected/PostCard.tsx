@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { LogBox } from 'react-native';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
+import { Ionicons } from '@expo/vector-icons';
 
 // Ignore specific log notifications
 LogBox.ignoreLogs([
@@ -19,9 +20,10 @@ interface PostCardProps {
   post: Post;
   onLike?: (post: Post) => void;
   onReblog?: (post: Post) => void;
+  isBoost?: boolean;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) => {
+export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const [server, setServer] = useState<string | null>(null);
@@ -41,7 +43,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
     try {
       if (!server) return Alert.alert('Error', 'Server not configured');
 
-      // Optimistically update the UI
       setIsLiked(!isLiked);
       setFavouritesCount((prev) => (isLiked ? prev - 1 : prev + 1));
 
@@ -53,7 +54,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
 
       onLike && onLike(post);
     } catch (error) {
-      // Revert UI changes if API call fails
       setIsLiked(!isLiked);
       setFavouritesCount((prev) => (isLiked ? prev + 1 : prev - 1));
       Alert.alert('Error', 'Failed to like/unlike the post');
@@ -64,7 +64,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
     try {
       if (!server) return Alert.alert('Error', 'Server not configured');
 
-      // Optimistically update the UI
       setIsReblogged(!isReblogged);
       setReblogsCount((prev) => (isReblogged ? prev - 1 : prev + 1));
 
@@ -76,7 +75,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
 
       onReblog && onReblog(post);
     } catch (error) {
-      // Revert UI changes if API call fails
       setIsReblogged(!isReblogged);
       setReblogsCount((prev) => (isReblogged ? prev + 1 : prev - 1));
       Alert.alert('Error', 'Failed to reblog/un-reblog the post');
@@ -85,12 +83,22 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
 
   const styles = StyleSheet.create({
     container: {
-      marginBottom: theme.spacing.medium,
-      padding: theme.spacing.medium,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: theme.borderRadius.medium,
+      ...(isBoost ? {} : {
+        padding: theme.spacing.medium,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+      }),
       backgroundColor: theme.colors.background,
+    },
+    boostInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: theme.spacing.small,
+    },
+    boostText: {
+      color: theme.colors.text,
+      marginLeft: theme.spacing.small,
+      fontSize: 14,
     },
     header: {
       flexDirection: 'row',
@@ -139,29 +147,18 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
       marginTop: theme.spacing.medium,
       color: theme.colors.text,
     },
-    actionButtons: {
+    actions: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: theme.spacing.small,
+      marginTop: 12,
+      justifyContent: 'space-around',
     },
     actionButton: {
-      paddingVertical: theme.spacing.small,
-      paddingHorizontal: theme.spacing.medium,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: theme.borderRadius.small,
+      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
     },
-    likedButton: {
-      borderColor: theme.colors.text,
-    },
-    rebloggedButton: {
-      borderColor: theme.colors.text,
-    },
-    actionButtonText: {
-      color: theme.colors.primary,
-      fontWeight: 'bold',
+    actionText: {
+      fontSize: 16,
+      marginLeft: 8,
     },
   });
 
@@ -207,71 +204,75 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog }) =>
     </View>
   );
 
-  const renderBoost = () => (post.reblog ? <PostCard post={post.reblog} /> : null);
-
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
+
+  const renderContent = () => {
+    if (post.reblog && !isBoost) {
+      return (
+        <>
+          <View style={styles.boostInfo}>
+            <Ionicons name="repeat" size={16} color={theme.colors.text} />
+            <Text style={styles.boostText}>{post.account.display_name} boosted</Text>
+          </View>
+          <PostCard post={post.reblog} isBoost={true} onLike={onLike} onReblog={onReblog} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <View style={styles.header}>
+          <Image
+            source={{ uri: post.account.avatar }}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
+            <Text style={styles.username}>
+              @{post.account.username} <Text style={styles.fediverseId}>({post.account.acct})</Text>
+            </Text>
+          </View>
+        </View>
+
+        <RenderHTML
+          contentWidth={width}
+          source={{ html: post.content }}
+          systemFonts={systemFonts}
+          tagsStyles={tagsStyles}
+          renderersProps={renderersProps}
+          defaultTextProps={{
+            selectable: true,
+          }}
+          enableExperimentalMarginCollapsing={true}
+        />
+
+        {post.media_attachments.length > 0 && <View style={styles.media}>{renderMediaAttachments()}</View>}
+
+        {post.poll && renderPoll()}
+
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={24} color={isLiked ? theme.colors.error : theme.colors.text} />
+            <Text style={[styles.actionText, { color: theme.colors.text }]}>{favouritesCount}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
+            <Ionicons name={isReblogged ? 'repeat' : 'repeat-outline'} size={24} color={isReblogged ? theme.colors.success : theme.colors.text} />
+            <Text style={[styles.actionText, { color: theme.colors.text }]}>{reblogsCount}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Ionicons name={'return-down-back-outline'} size={24} color={theme.colors.text} />
+            <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.date}>Posted on {formattedDate}</Text>
+      </>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <Image
-          source={{ uri: post.account.avatar }}
-          style={styles.avatar}
-        />
-        <View>
-          <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
-          <Text style={styles.username}>
-            @{post.account.username} <Text style={styles.fediverseId}>({post.account.acct})</Text>
-          </Text>
-        </View>
-      </View>
-
-      {/* Render HTML content */}
-      <RenderHTML
-        contentWidth={width}
-        source={{ html: post.content }}
-        systemFonts={systemFonts}
-        tagsStyles={tagsStyles}
-        renderersProps={renderersProps}
-        defaultTextProps={{
-          selectable: true,
-        }}
-        enableExperimentalMarginCollapsing={true}
-      />
-
-      {/* Media Attachments */}
-      {post.media_attachments.length > 0 && <View style={styles.media}>{renderMediaAttachments()}</View>}
-
-      {/* Poll Section */}
-      {post.poll && renderPoll()}
-
-      {/* Boosted Post */}
-      {renderBoost()}
-
-      {/* Counters */}
-      <Text style={styles.counter}>
-        ❤️ {favouritesCount} 🔄 {reblogsCount} 💬 {post.replies_count || 0}
-      </Text>
-
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.actionButton, isLiked && styles.likedButton]}
-          onPress={handleLike}
-        >
-          <Text style={styles.actionButtonText}>{isLiked ? 'Unlike' : 'Like'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, isReblogged && styles.rebloggedButton]}
-          onPress={handleReblog}
-        >
-          <Text style={styles.actionButtonText}>{isReblogged ? 'Undo Reblog' : 'Reblog'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Date */}
-      <Text style={styles.date}>Posted on {formattedDate}</Text>
+      {renderContent()}
     </View>
   );
 };
