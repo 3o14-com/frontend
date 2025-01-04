@@ -187,7 +187,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       backgroundColor: theme.colors.background,
     },
     pressed: {
-      opacity: 0.5,
+      opacity: 1,
     }
   });
 
@@ -252,6 +252,21 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     router.push(`/screens/thread/${post.id}`);
   };
 
+  const handleProfilePress = () => {
+    try {
+      const username = post.account.acct
+
+      if (!username) {
+        console.error('Could not determine username for profile navigation');
+        return;
+      }
+
+      router.push(`/screens/profile/${username}`);
+    } catch (error) {
+      console.error('Error navigating to profile:', error);
+    }
+  };
+
   const renderContent = () => {
     if (post.reblog && !isBoost) {
       return (
@@ -267,18 +282,22 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
     return (
       <>
-        <View style={styles.header}>
-          <Image
-            source={{ uri: post.account.avatar }}
-            style={styles.avatar}
-          />
-          <View>
-            <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
-            <Text style={styles.username}>
-              @{post.account.username} <Text style={styles.fediverseId}>({post.account.acct})</Text>
-            </Text>
+        <Pressable
+          onPress={handleProfilePress}
+        >
+          <View style={styles.header}>
+            <Image
+              source={{ uri: post.account.avatar }}
+              style={styles.avatar}
+            />
+            <View>
+              <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
+              <Text style={styles.username}>
+                <Text style={styles.fediverseId}>@{post.account.acct}</Text>
+              </Text>
+            </View>
           </View>
-        </View>
+        </Pressable>
 
         <RenderHTML
           contentWidth={width}
