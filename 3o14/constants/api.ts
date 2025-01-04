@@ -11,4 +11,11 @@ export const API_ENDPOINTS = {
   COMMENT: '/api/v1/statuses',
   STATUS: '/api/v1/statuses/{id}',
   STATUS_CONTEXT: '/api/v1/statuses/{id}/context',
+  ACCOUNT_LOOKUP: '/api/v1/accounts/lookup?acct={username}',
+  ACCOUNT_STATUSES: '/api/v1/accounts/{id}/statuses',
+  ACCOUNT_FOLLOWERS: '/api/v1/accounts/{id}/followers',
+  ACCOUNT_FOLLOWING: '/api/v1/accounts/{id}/following',
+  FOLLOW: '/api/v1/accounts/{id}/follow',
+  UNFOLLOW: '/api/v1/accounts/{id}/unfollow',
+  RELATIONSHIPS: '/api/v1/accounts/relationships',
 };

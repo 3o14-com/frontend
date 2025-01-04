@@ -4,6 +4,28 @@ export interface Account {
   display_name: string;
   avatar: string;
   acct?: string;
+  header: string;
+  bio: string;
+  followers_count: number;
+  following_count: number;
+  posts_count: number;
+  created_at: string;
+}
+
+export interface Relationship {
+  id: string;
+  following: boolean;
+  followed_by: boolean;
+  requested: boolean;
+  endorsed: boolean;
+  blocking: boolean;
+  muting: boolean;
+  muting_notifications: boolean;
+  domain_blocking: boolean;
+  showing_reblogs: boolean;
+  notifying: boolean;
+  note: string;
+  languages: string[] | null;
 }
 
 export interface Context {
@@ -14,6 +36,21 @@ export interface Context {
 export interface StatusResponse {
   status: Post;
   context: Context;
+}
+
+export interface ProfileResponse {
+  account: Account;
+  posts: Post[];
+}
+
+export interface FollowersResponse {
+  accounts: Account[];
+  next_page?: string;
+}
+
+export interface FollowingResponse {
+  accounts: Account[];
+  next_page?: string;
 }
 
 export interface MediaAttachment {
