@@ -85,3 +85,28 @@ export interface Post {
   favourited?: boolean;
   reblogged?: boolean;
 }
+
+export interface Visibility {
+  type: 'public' | 'unlisted' | 'private' | 'direct';
+  label: string;
+  icon: 'globe' | 'lock-closed' | 'mail' | 'people';
+}
+
+export interface CreatePostParams {
+  status: string;
+  in_reply_to_id?: string;
+  media_ids?: string[];
+  poll?: null;
+  sensitive?: boolean;
+  spoiler_text?: string;
+  visibility?: 'public' | 'unlisted' | 'private' | 'direct';
+  language?: string;
+}
+
+export interface MediaUploadResponse {
+  id: string;
+  type: 'image' | 'video' | 'gifv' | 'audio';
+  url: string;
+  preview_url: string;
+  description: string | null;
+}

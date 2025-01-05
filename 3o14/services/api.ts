@@ -1,6 +1,6 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
-import type { Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse } from '@/types/api';
+import type { CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse } from '@/types/api';
 
 
 export const ApiService = {
@@ -435,6 +435,67 @@ export const ApiService = {
         `Failed to get relationship: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
-  }
+  },
+
+  async createPost(
+    server: string,
+    params: CreatePostParams
+  ): Promise<Post> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = `https://${server}${API_ENDPOINTS.CREATE_POST}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create post: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      throw new Error(
+        `Failed to create post: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  },
+
+  async uploadMedia(
+    server: string,
+    file: FormData
+  ): Promise<MediaUploadResponse> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = `https://${server}${API_ENDPOINTS.UPLOAD_MEDIA}`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload media: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      throw new Error(
+        `Failed to upload media: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  },
 
 };

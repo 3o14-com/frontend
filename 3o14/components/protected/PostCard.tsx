@@ -407,6 +407,27 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     }
   };
 
+  const handleReply = () => {
+    try {
+      if (!post?.id) {
+        console.error('Invalid post data for reply: missing post ID');
+        return;
+      }
+
+      const encodedPost = btoa(encodeURIComponent(JSON.stringify(post)));
+
+      router.push({
+        pathname: '/screens/compose', // Matches your routing structure
+        params: {
+          replyToId: post.id,
+          replyToPost: encodedPost
+        }
+      });
+    } catch (error) {
+      console.error('Error navigating to reply compose:', error);
+    }
+  };
+
   const renderContent = () => {
     if (post.reblog && !isBoost) {
       return (
@@ -460,7 +481,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
             <Ionicons name={isReblogged ? 'repeat' : 'repeat-outline'} size={24} color={isReblogged ? theme.colors.success : theme.colors.text} />
             <Text style={[styles.actionText, { color: theme.colors.text }]}>{reblogsCount}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleReply}>
             <Ionicons name={'return-down-back-outline'} size={24} color={theme.colors.text} />
             <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
           </TouchableOpacity>

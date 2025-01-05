@@ -18,4 +18,6 @@ export const API_ENDPOINTS = {
   FOLLOW: '/api/v1/accounts/{id}/follow',
   UNFOLLOW: '/api/v1/accounts/{id}/unfollow',
   RELATIONSHIPS: '/api/v1/accounts/relationships',
+  CREATE_POST: '/api/v1/statuses',
+  UPLOAD_MEDIA: '/api/v1/media',
 };
