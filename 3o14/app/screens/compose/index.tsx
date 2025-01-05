@@ -440,6 +440,8 @@ export default function ComposeScreen() {
     },
   };
 
+  const formattedContent = content.replace(/\n/g, '<br>');
+
   return (
     <>
       <Stack.Screen
@@ -505,7 +507,7 @@ export default function ComposeScreen() {
           <View style={styles.previewBox}>
             <ScrollView>
               <ContentRenderer
-                content={content}
+                content={formattedContent}
                 width={width}
                 tagsStyles={tagsStyles}
                 renderersProps={renderersProps}
