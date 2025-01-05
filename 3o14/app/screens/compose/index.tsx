@@ -11,6 +11,7 @@ import {
   Alert,
   Text,
   Image,
+  useWindowDimensions
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,148 @@ import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import type { Post, CreatePostParams, MediaUploadResponse } from '@/types/api';
 import { useTheme } from '@/hooks/useTheme';
+import RenderHTML, { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
+
+// @ts-ignore
+import MathJax from 'react-native-mathjax';
+import { MathJaxContext, MathJax as WebMathJax } from 'better-react-mathjax';
+
+interface ContentRendererProps {
+  content: string;
+  width: number;
+  tagsStyles: Record<string, MixedStyleDeclaration>;
+  renderersProps: any;
+  systemFonts: string[];
+}
+
+const mathJaxConfig = {
+  loader: {
+    load: ['input/tex', 'output/chtml'],
+    timeout: 10000,
+  },
+  startup: {
+    typeset: false,
+  },
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    processEscapes: true,
+  },
+};
+
+const mmlOptions = {
+  messageStyle: "none",
+  extensions: ["tex2jax.js"],
+  jax: ["input/TeX", "output/HTML-CSS"],
+  tex2jax: {
+    inlineMath: [["$", "$"], ["\\(", "\\)"]],
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+    processEscapes: true,
+  },
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"],
+  },
+};
+
+declare global {
+  interface Window {
+    MathJax?: {
+      startup?: {
+        promise: Promise<void>;
+      };
+    };
+  }
+}
+
+const WebContentRenderer: React.FC<ContentRendererProps> = ({
+  content,
+  width,
+  tagsStyles,
+  renderersProps,
+  systemFonts,
+}) => {
+  const [mathReady, setMathReady] = useState(false);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    // Wait for MathJax to be ready before rendering content
+    const checkMathJax = async () => {
+      try {
+        await window.MathJax?.startup?.promise;
+        setMathReady(true);
+        setKey((prev) => prev + 1); // Trigger re-render when MathJax is ready
+      } catch (error) {
+        console.error("MathJax failed to initialize", error);
+      }
+    };
+    checkMathJax();
+  }, []);
+
+  const handleMathJaxError = (error: any) => {
+    console.error('MathJax typesetting error:', error);
+  };
+
+  // Prevent rendering if MathJax isn't ready or content is missing
+  if (!mathReady || !content) {
+    return <ActivityIndicator size="small" />;
+  }
+
+  return (
+    <MathJaxContext key={key} config={mathJaxConfig}>
+      <WebMathJax onError={handleMathJaxError}>
+        <RenderHTML
+          contentWidth={width}
+          source={{ html: content }}
+          systemFonts={systemFonts}
+          tagsStyles={tagsStyles}
+          renderersProps={renderersProps}
+          defaultTextProps={{
+            selectable: true,
+          }}
+          enableExperimentalMarginCollapsing={true}
+        />
+      </WebMathJax>
+    </MathJaxContext>
+  );
+};
+
+const NativeContentRenderer: React.FC<ContentRendererProps> = ({
+  content,
+}) => {
+  const theme = useTheme();
+
+  const mathJaxStyle = `
+    <style>
+      body {
+        background-color: ${theme.colors.background};
+        color: ${theme.colors.text};
+      }
+      .MathJax {
+        display: inline-block;
+        font-size: 1rem;
+        line-height: 1.5;
+        background-color: ${theme.colors.background};
+        color: ${theme.colors.text};
+      }
+      a {
+        color: ${theme.colors.primary};
+      }
+    </style>
+  `;
+
+  return (
+    <MathJax
+      mathJaxOptions={mmlOptions}
+      html={`${mathJaxStyle}${content}`}
+    />
+  );
+};
+
+const ContentRenderer: React.FC<ContentRendererProps> = (props) => {
+  return Platform.OS === 'web'
+    ? <WebContentRenderer {...props} />
+    : <NativeContentRenderer {...props} />;
+};
 
 type VisibilityType = 'public' | 'unlisted' | 'private' | 'direct';
 
@@ -181,7 +324,7 @@ export default function ComposeScreen() {
       color: theme.colors.text,
       fontSize: 16,
       textAlignVertical: 'top',
-      minHeight: 300,
+      minHeight: 150,
       borderWidth: 0,
       padding: theme.spacing.medium,
     },
@@ -263,7 +406,39 @@ export default function ComposeScreen() {
     submitButtonDisabled: {
       opacity: 0.5,
     },
+    previewBox: {
+      maxHeight: 200, // Limit the height of the preview box
+      borderTopWidth: 1,
+      borderColor: theme.colors.border,
+      padding: theme.spacing.medium,
+      marginTop: theme.spacing.medium,
+      backgroundColor: theme.colors.background,
+    },
   });
+
+  const systemFonts = [...defaultSystemFonts];
+  const { width } = useWindowDimensions();
+
+  const tagsStyles: Record<string, MixedStyleDeclaration> = {
+    body: {
+      color: theme.colors.text,
+      fontSize: 16,
+    },
+    a: {
+      color: theme.colors.primary,
+      textDecorationLine: 'none' as const,
+    },
+    p: {
+      color: theme.colors.text,
+      marginBottom: theme.spacing.small,
+    },
+  };
+
+  const renderersProps = {
+    img: {
+      enableExperimentalPercentWidth: true,
+    },
+  };
 
   return (
     <>
@@ -306,7 +481,10 @@ export default function ComposeScreen() {
               placeholder="Content warning"
               value={contentWarning}
               onChangeText={setContentWarning}
-              style={styles.warningInput}
+              style={[
+                styles.warningInput,
+                Platform.OS === 'web' && { outline: 'none' },
+              ]}
               placeholderTextColor={theme.colors.border}
             />
           )}
@@ -316,10 +494,25 @@ export default function ComposeScreen() {
             placeholder={params.replyToId ? "Write your reply..." : "What's on your mind?"}
             value={content}
             onChangeText={setContent}
-            style={styles.input}
+            style={[
+              styles.input,
+              Platform.OS === 'web' && { outline: 'none' },
+            ]}
             placeholderTextColor={theme.colors.border}
             autoFocus
           />
+
+          <View style={styles.previewBox}>
+            <ScrollView>
+              <ContentRenderer
+                content={content}
+                width={width}
+                tagsStyles={tagsStyles}
+                renderersProps={renderersProps}
+                systemFonts={systemFonts}
+              />
+            </ScrollView>
+          </View>
 
           {mediaAttachments.length > 0 && (
             <View style={styles.mediaPreview}>
