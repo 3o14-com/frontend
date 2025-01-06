@@ -10,17 +10,14 @@ export default function ProtectedLayout() {
 
   const LogoutButton = () => (
     <View style={{ position: 'absolute', right: 10, top: 8 }}>
-      <Button
-        title="Logout"
-        onPress={logout}
-      />
+      <Button title="Logout" onPress={logout} />
     </View>
   );
 
   return (
     <Tabs
       screenOptions={{
-        tabBarPosition: 'top',
+        tabBarPosition: 'bottom',
         headerShown: false,
         headerStyle: {
           backgroundColor: theme.colors.background,
@@ -35,15 +32,13 @@ export default function ProtectedLayout() {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 50,
-          paddingTop: Platform.OS === 'ios' ? 8 : 6,
+          height: 55,
+          paddingTop: Platform.OS === 'ios' ? 10 : 10,
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.text,
         tabBarLabelStyle: {
-          fontSize: 14,
-          fontWeight: '500',
-          paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+          display: 'none',
         },
         tabBarIconStyle: {
           marginBottom: 0,
@@ -65,7 +60,6 @@ export default function ProtectedLayout() {
               color={color}
             />
           ),
-          // Use headerRight for the logout button
           headerRight: LogoutButton,
         }}
       />
@@ -75,7 +69,46 @@ export default function ProtectedLayout() {
           title: 'Local',
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
-              name={focused ? 'people' : 'people-outline'}
+              name={focused ? 'globe' : 'globe-outline'}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="compose"
+        options={{
+          title: 'Compose',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'add-circle' : 'add-circle-outline'}
+              size={34}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="search"
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'search' : 'search-outline'}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
               size={22}
               color={color}
             />

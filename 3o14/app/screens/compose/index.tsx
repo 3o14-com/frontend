@@ -43,8 +43,8 @@ const mathJaxConfig = {
     typeset: false,
   },
   tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
     processEscapes: true,
   },
 };
@@ -407,7 +407,7 @@ export default function ComposeScreen() {
       opacity: 0.5,
     },
     previewBox: {
-      maxHeight: 200, // Limit the height of the preview box
+      maxHeight: 200,
       borderTopWidth: 1,
       borderColor: theme.colors.border,
       padding: theme.spacing.medium,
