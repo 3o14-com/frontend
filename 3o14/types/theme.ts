@@ -3,6 +3,7 @@ export interface Theme {
     primary: string;
     background: string;
     text: string;
+    textSecondary: string;
     border: string;
     error: string;
     success: string;

@@ -19,5 +19,7 @@ export const API_ENDPOINTS = {
   UNFOLLOW: '/api/v1/accounts/{id}/unfollow',
   RELATIONSHIPS: '/api/v1/accounts/relationships',
   CREATE_POST: '/api/v1/statuses',
+  DELETE_STATUS: '/api/v1/statuses/{id}',
   UPLOAD_MEDIA: '/api/v1/media',
+  UPDATE_CREDENTIALS: '/api/v1/accounts/update_credentials',
 };

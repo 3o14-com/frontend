@@ -1,6 +1,6 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
-import type { CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse } from '@/types/api';
+import type { CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
 
 
 export const ApiService = {
@@ -228,7 +228,11 @@ export const ApiService = {
    * @returns ProfileResponse containing account details and posts
    * @throws Error if not authenticated or request fails
    */
-  async getProfile(server: string, username: string): Promise<ProfileResponse> {
+  async getProfile(
+    server: string,
+    username: string,
+    maxId?: string | null // Optional maxId for pagination
+  ): Promise<ProfileResponse> {
     const accessToken = await StorageService.get('accessToken');
     if (!accessToken) throw new Error('Not authenticated');
 
@@ -246,8 +250,12 @@ export const ApiService = {
 
       const account: Account = await lookupResponse.json();
 
-      // Then, fetch the account's posts
-      const postsUrl = `https://${server}${API_ENDPOINTS.ACCOUNT_STATUSES.replace('{id}', account.id)}`;
+      // Then, fetch the account's posts (with pagination if maxId is provided)
+      let postsUrl = `https://${server}${API_ENDPOINTS.ACCOUNT_STATUSES.replace('{id}', account.id)}`;
+      if (maxId) {
+        postsUrl += `?max_id=${maxId}`; // Assuming the API accepts maxId as a query parameter for pagination
+      }
+
       const postsResponse = await fetch(postsUrl, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -256,11 +264,15 @@ export const ApiService = {
         throw new Error(`Failed to fetch account posts: ${postsResponse.statusText}`);
       }
 
-      const posts = await postsResponse.json();
+      const posts: Post[] = await postsResponse.json();
+
+      // Get the maxId for pagination (the last post's ID)
+      const newMaxId = posts.length > 0 ? posts[posts.length - 1].id : null;
 
       return {
         account,
         posts,
+        maxId: newMaxId, // Return the new maxId
       };
     } catch (error) {
       throw new Error(
@@ -468,6 +480,23 @@ export const ApiService = {
     }
   },
 
+  async deletePost(server: string, id: string): Promise<void> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = `https://${server}${API_ENDPOINTS.DELETE_STATUS.replace('{id}', id)}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete post: ${response.statusText}`);
+    }
+  },
+
   async uploadMedia(
     server: string,
     file: FormData
@@ -515,6 +544,81 @@ export const ApiService = {
     }
 
     return response.json();
+  },
+
+  async updateProfile(
+    server: string,
+    params: UpdateProfileParams
+  ): Promise<UpdateProfileResponse> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = `https://${server}${API_ENDPOINTS.UPDATE_CREDENTIALS}`;
+
+    // Create FormData instance for multipart/form-data request
+    const formData = new FormData();
+
+    // Append text fields
+    if (params.display_name !== undefined) {
+      formData.append('display_name', params.display_name);
+    }
+    if (params.note !== undefined) {
+      formData.append('note', params.note);
+    }
+    if (params.locked !== undefined) {
+      formData.append('locked', params.locked.toString());
+    }
+    if (params.bot !== undefined) {
+      formData.append('bot', params.bot.toString());
+    }
+    if (params.discoverable !== undefined) {
+      formData.append('discoverable', params.discoverable.toString());
+    }
+
+    // Handle profile fields (if provided)
+    if (params.fields_attributes) {
+      params.fields_attributes.forEach((field, index) => {
+        formData.append(`fields_attributes[${index}][name]`, field.name);
+        formData.append(`fields_attributes[${index}][value]`, field.value);
+      });
+    }
+
+    // Handle avatar and header images (if provided)
+    if (params.avatar) {
+      // Assuming avatar is a base64 string
+      const avatarBlob = await (await fetch(params.avatar)).blob();
+      formData.append('avatar', avatarBlob);
+    }
+    if (params.header) {
+      // Assuming header is a base64 string
+      const headerBlob = await (await fetch(params.header)).blob();
+      formData.append('header', headerBlob);
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // Don't set Content-Type header - it will be set automatically with boundary
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          `Failed to update profile: ${response.statusText}${errorData ? ` - ${JSON.stringify(errorData)}` : ''
+          }`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      throw new Error(
+        `Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   },
 
 };

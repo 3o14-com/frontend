@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   StyleSheet,
   RefreshControl,
@@ -21,9 +21,14 @@ export default function ProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
   const router = useRouter();
   const theme = useTheme();
+
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [maxId, setMaxId] = useState<string | null>(null);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+
   const [profile, setProfile] = useState<{
     account: Account | null;
     posts: Post[];
@@ -33,7 +38,6 @@ export default function ProfileScreen() {
   });
 
   useEffect(() => {
-    // Fetch relationship status when profile loads
     const fetchRelationship = async () => {
       if (profile.account) {
         try {
@@ -58,7 +62,6 @@ export default function ProfileScreen() {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not configured');
 
-      // Optimistically update the UI
       setIsFollowing(!isFollowing);
 
       if (isFollowing) {
@@ -80,36 +83,66 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error('Error following/unfollowing:', error);
-      // Revert UI update if API call fails
       setIsFollowing(isFollowing);
     }
   };
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (refresh = false) => {
     try {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not configured');
 
-      const response = await ApiService.getProfile(server, username);
-      setProfile({
-        account: response.account,
-        posts: response.posts,
-      });
+      const response = await ApiService.getProfile(
+        server,
+        username,
+        refresh ? undefined : maxId
+      );
+
+      const { account, posts } = response;
+
+      if (posts?.length > 0) {
+        setProfile((prev) => ({
+          account: refresh ? account : prev.account,
+          posts: refresh
+            ? posts
+            : [
+              ...prev.posts.filter(post => !posts.some(newPost => newPost.id === post.id)),
+              ...posts,
+            ],
+        }));
+
+        // Update maxId to the last post's ID only when fetching more posts
+        if (!refresh && posts.length > 0) {
+          setMaxId(posts[posts.length - 1].id); // Update maxId to the last post's ID
+        }
+      } else {
+        setHasMorePosts(false); // Stop fetching if no more posts are available
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
       setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
+    fetchProfile(true);
   }, [username]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    fetchProfile();
+    setHasMorePosts(true);
+    setMaxId(null);
+    fetchProfile(true); // Pass `true` to indicate a refresh
+  };
+
+  const handleLoadMore = () => {
+    if (!isFetchingMore && hasMorePosts) {
+      setIsFetchingMore(true);
+      fetchProfile();
+    }
   };
 
   const navigateToFollowers = () => {
@@ -146,9 +179,9 @@ export default function ProfileScreen() {
       borderWidth: 4,
       borderColor: theme.colors.background,
       width: 80,
-
       height: 80,
       overflow: 'hidden',
+      backgroundColor: theme.colors.background,
     },
     avatar: {
       width: '100%',
@@ -156,6 +189,7 @@ export default function ProfileScreen() {
     },
     profileInfo: {
       padding: 16,
+      backgroundColor: theme.colors.background,
     },
     displayName: {
       fontSize: 20,
@@ -175,9 +209,11 @@ export default function ProfileScreen() {
     stats: {
       flexDirection: 'row',
       marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
+      borderTopWidth: 0,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
       paddingTop: 16,
+      paddingBottom: 16,
     },
     stat: {
       flex: 1,
@@ -193,11 +229,6 @@ export default function ProfileScreen() {
       color: theme.colors.text,
       marginTop: 4,
     },
-    postsContainer: {
-      marginTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border,
-    },
     followButton: {
       marginTop: 16,
       paddingHorizontal: 24,
@@ -209,7 +240,10 @@ export default function ProfileScreen() {
     followButtonText: {
       fontSize: 16,
       fontWeight: '600',
-    }
+    },
+    postList: {
+      marginTop: 16,
+    },
   });
 
   return (
@@ -243,8 +277,71 @@ export default function ProfileScreen() {
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : (
-        <ScrollView
-          style={styles.container}
+        <FlatList
+          data={profile.posts}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => <PostCard post={item} />}
+          ListHeaderComponent={() => (
+            profile.account && (
+              <>
+                <Image
+                  source={{ uri: profile.account.header }}
+                  style={styles.headerImage}
+                />
+                <View style={styles.avatarContainer}>
+                  <Image
+                    source={{ uri: profile.account.avatar }}
+                    style={styles.avatar}
+                  />
+                </View>
+                <View style={styles.profileInfo}>
+                  <Text style={styles.displayName}>{profile.account.display_name}</Text>
+                  <Text style={styles.username}>@{profile.account.username}</Text>
+                  <Text style={styles.bio}>{profile.account.bio}</Text>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.followButton,
+                      {
+                        backgroundColor: isFollowing ? theme.colors.background : theme.colors.primary,
+                        borderColor: theme.colors.primary,
+                      },
+                    ]}
+                    onPress={handleFollowPress}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color={theme.colors.primary} />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.followButtonText,
+                          { color: isFollowing ? theme.colors.primary : "#FFFFFF" },
+                        ]}
+                      >
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </Text>
+                    )}
+
+                  </TouchableOpacity>
+                  <View style={styles.stats}>
+                    <TouchableOpacity style={styles.stat} onPress={navigateToFollowers}>
+                      <Text style={styles.statNumber}>
+                        {profile.account.followers_count.toLocaleString()}
+                      </Text>
+                      <Text style={styles.statLabel}>Followers</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.stat} onPress={navigateToFollowing}>
+                      <Text style={styles.statNumber}>
+                        {profile.account.following_count.toLocaleString()}
+                      </Text>
+                      <Text style={styles.statLabel}>Following</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            )
+          )}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -252,70 +349,10 @@ export default function ProfileScreen() {
               colors={[theme.colors.primary]}
             />
           }
-        >
-          {profile.account && (
-            <>
-              <Image
-                source={{ uri: profile.account.header }}
-                style={styles.headerImage}
-              />
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={{ uri: profile.account.avatar }}
-                  style={styles.avatar}
-                />
-              </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.displayName}>{profile.account.display_name}</Text>
-                <Text style={styles.username}>@{profile.account.username}</Text>
-                <Text style={styles.bio}>{profile.account.bio}</Text>
-                <View style={styles.stats}>
-                  <TouchableOpacity style={styles.stat} onPress={navigateToFollowers}>
-                    <Text style={styles.statNumber}>
-                      {profile.account.followers_count.toLocaleString()}
-                    </Text>
-                    <Text style={styles.statLabel}>Followers</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.stat} onPress={navigateToFollowing}>
-                    <Text style={styles.statNumber}>
-                      {profile.account.following_count.toLocaleString()}
-                    </Text>
-                    <Text style={styles.statLabel}>Following</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[
-                  styles.followButton,
-                  {
-                    backgroundColor: isFollowing ? theme.colors.background : theme.colors.primary,
-                    borderColor: theme.colors.primary,
-                  },
-                ]}
-                onPress={handleFollowPress}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                ) : (
-                  <Text
-                    style={[
-                      styles.followButtonText,
-                      { color: isFollowing ? theme.colors.primary : "#FFFFFF" },
-                    ]}
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-              <View style={styles.postsContainer}>
-                {profile.posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
-              </View>
-            </>
-          )}
-        </ScrollView>
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={isFetchingMore ? <ActivityIndicator size="small" color={theme.colors.primary} /> : null}
+        />
       )}
     </>
   );

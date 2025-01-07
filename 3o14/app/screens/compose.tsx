@@ -30,7 +30,6 @@ export default function ComposeModal() {
     router.back();
   };
 
-  // This is a passthrough handler that will be called after ComposeComponent's 
   const handleSubmitSuccess = () => {
     router.back();
   };

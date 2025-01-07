@@ -1,18 +1,21 @@
 import { Tabs, usePathname } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import { useAuth } from '@/hooks/useAuth';
-import { Button, Platform, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ProtectedLayout() {
   const theme = useTheme();
-  const { logout } = useAuth();
+  const { width } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
 
-  const LogoutButton = () => (
-    <View style={{ position: 'absolute', right: 10, top: 8 }}>
-      <Button title="Logout" onPress={logout} />
-    </View>
+  const [tabBarPosition, setTabBarPosition] = useState<'left' | 'bottom'>(
+    width > 768 ? 'left' : 'bottom'
   );
+
+  useEffect(() => {
+    setTabBarPosition(width > 768 ? 'left' : 'bottom');
+  }, [width]);
 
   const pathname = usePathname();
   const isComposeScreen = pathname === '/compose';
@@ -20,7 +23,7 @@ export default function ProtectedLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarPosition: 'bottom',
+        tabBarPosition: isWeb ? tabBarPosition : 'bottom',
         headerShown: false,
         headerStyle: {
           backgroundColor: theme.colors.background,
@@ -30,28 +33,27 @@ export default function ProtectedLayout() {
         },
         tabBarStyle: {
           backgroundColor: theme.colors.background,
-          borderBottomColor: theme.colors.border,
-          borderBottomWidth: 0,
+          borderRightColor: theme.colors.border,
           borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          height: 55,
+          borderRightWidth: 1,
+          flexDirection: isWeb && tabBarPosition === 'left' ? 'column' : 'row',
+          maxWidth: isWeb && tabBarPosition === 'left' ? 100 : '100%',
+          width: isWeb && tabBarPosition === 'left' ? 100 : '100%',
+          height: tabBarPosition === 'bottom' ? 55 : '100%',
           paddingTop: 5,
           paddingBottom: 10,
           display: isComposeScreen ? 'none' : 'flex',
         },
         tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveBackgroundColor: theme.colors.background,
         tabBarInactiveTintColor: theme.colors.text,
         tabBarLabelStyle: {
-          display: 'none',
+          display: isWeb && tabBarPosition === 'left' ? 'flex' : 'none',
         },
         tabBarIconStyle: {
           marginBottom: 0,
           marginTop: Platform.OS === 'ios' ? 6 : 4,
         },
-        ...(Platform.OS === 'ios' || Platform.OS === 'android'
-          ? { swipeEnabled: true }
-          : {}),
       }}
     >
       <Tabs.Screen
@@ -65,7 +67,6 @@ export default function ProtectedLayout() {
               color={color}
             />
           ),
-          headerRight: LogoutButton,
         }}
       />
       <Tabs.Screen

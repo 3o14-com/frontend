@@ -41,6 +41,7 @@ export interface StatusResponse {
 export interface ProfileResponse {
   account: Account;
   posts: Post[];
+  maxId: string | null;
 }
 
 export interface FollowersResponse {
@@ -58,7 +59,7 @@ export interface MediaAttachment {
   type: 'image' | 'video' | 'gifv' | 'audio';
   url: string;
   preview_url: string;
-  description: string | null;
+  meta: Record<string, any>;
 }
 
 export interface Poll {
@@ -109,4 +110,39 @@ export interface MediaUploadResponse {
   url: string;
   preview_url: string;
   description: string | null;
+}
+
+export interface UpdateProfileParams {
+  display_name?: string;
+  note?: string;         // Bio
+  avatar?: string;       // Base64 encoded image
+  header?: string;       // Base64 encoded image
+  locked?: boolean;      // Make account private/public
+  bot?: boolean;         // Is this account automated
+  discoverable?: boolean; // Allow account to be discovered
+  fields_attributes?: Array<{
+    name: string;
+    value: string;
+  }>;
+}
+
+export interface UpdateProfileResponse {
+  id: string;
+  username: string;
+  display_name: string;
+  note: string;
+  avatar: string;
+  header: string;
+  locked: boolean;
+  bot: boolean;
+  discoverable: boolean;
+  created_at: string;
+  followers_count: number;
+  following_count: number;
+  statuses_count: number;
+  fields: Array<{
+    name: string;
+    value: string;
+    verified_at: string | null;
+  }>;
 }
