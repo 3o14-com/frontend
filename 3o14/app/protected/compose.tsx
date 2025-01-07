@@ -1,34 +1,56 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Stack, router } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { ComposeComponent } from '@/components/common/Compose/ComposeComponent';
+import { Ionicons } from '@expo/vector-icons';
 
-
-export default function Compose() {
+export default function ComposeScreen() {
   const theme = useTheme();
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       backgroundColor: theme.colors.background,
     },
-    icon: {
-      marginBottom: 16,
-    },
-    text: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: theme.colors.text,
+    closeButton: {
+      paddingLeft: 15,
+      paddingRight: 5,
     },
   });
 
+  const handleClose = () => {
+    router.push('/protected');
+  };
+
+  const handleSubmitSuccess = () => {
+    router.push('/protected');
+  };
+
   return (
     <View style={styles.container}>
-      <Ionicons name="add" size={64} color={theme.colors.text} style={styles.icon} />
-      <Text style={styles.text}>Compose Page</Text>
+      <Stack.Screen
+        options={{
+          title: 'Make a Post',
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+            borderBottomWidth: 0,
+          } as any,
+          headerTintColor: theme.colors.text,
+          headerShadowVisible: false,
+          headerLeft: () => (
+            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <ComposeComponent
+        initialContent=""
+        onClose={handleClose}
+        onSubmit={handleSubmitSuccess}
+      />
     </View>
   );
 }
-

@@ -417,7 +417,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       const encodedPost = btoa(encodeURIComponent(JSON.stringify(post)));
 
       router.push({
-        pathname: '/screens/compose', // Matches your routing structure
+        pathname: '/screens/compose',
         params: {
           replyToId: post.id,
           replyToPost: encodedPost
