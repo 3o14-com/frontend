@@ -105,40 +105,6 @@ export default function ProfileScreen() {
   };
 
 
-  const handleSaveProfile = async () => {
-    if (!profile.account) return;
-
-    try {
-      setIsSaving(true);
-      const server = await StorageService.get('server');
-      if (!server) throw new Error('Server not configured');
-
-      await ApiService.updateProfile(server, {
-        display_name: editableProfile.display_name,
-        note: editableProfile.bio,
-        header: editableProfile.header,
-      });
-
-      setProfile(prev => ({
-        ...prev,
-        account: prev.account ? {
-          ...prev.account,
-          display_name: editableProfile.display_name,
-          bio: editableProfile.bio,
-          header: editableProfile.header || prev.account.header,
-        } : null,
-      }));
-
-      setIsEditing(false);
-      Alert.alert('Success', 'Profile updated successfully');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      Alert.alert('Error', 'Failed to update profile');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchProfile(true);
@@ -240,6 +206,9 @@ export default function ProfileScreen() {
       width: 80,
       height: 80,
       overflow: 'hidden',
+      backgroundColor: theme.colors.background,
+    },
+    mainContainer: {
       backgroundColor: theme.colors.background,
     },
     avatar: {
@@ -535,15 +504,17 @@ export default function ProfileScreen() {
           ListHeaderComponent={() => (
             profile.account && (
               <>
-                <Image
-                  source={{ uri: editableProfile.header || profile.account.header }}
-                  style={styles.headerImage}
-                />
-                <View style={styles.avatarContainer}>
+                <View style={styles.mainContainer}>
                   <Image
-                    source={{ uri: editableProfile.avatar || profile.account.avatar }}
-                    style={styles.avatar}
+                    source={{ uri: editableProfile.header || profile.account.header }}
+                    style={styles.headerImage}
                   />
+                  <View style={styles.avatarContainer}>
+                    <Image
+                      source={{ uri: editableProfile.avatar || profile.account.avatar }}
+                      style={styles.avatar}
+                    />
+                  </View>
                 </View>
                 {isEditing ? (
                   renderEditingForm()
