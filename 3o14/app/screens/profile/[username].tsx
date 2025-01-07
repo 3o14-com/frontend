@@ -7,7 +7,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   Image,
-  Text
+  Text,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { PostCard } from '@/components/protected/PostCard';
@@ -16,6 +17,8 @@ import { StorageService } from '@/services/storage';
 import { Account, Post } from '@/types/api';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { ContentRenderer } from '@/components/common/ContentRenderer';
+import { defaultSystemFonts } from 'react-native-render-html';
 
 export default function ProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
@@ -28,6 +31,7 @@ export default function ProfileScreen() {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
+  const { width } = useWindowDimensions();
 
   const [profile, setProfile] = useState<{
     account: Account | null;
@@ -246,6 +250,29 @@ export default function ProfileScreen() {
     },
   });
 
+  const systemFonts = [...defaultSystemFonts];
+
+  const tagsStyles = {
+    body: {
+      color: theme.colors.text,
+      fontSize: 16,
+    },
+    a: {
+      color: theme.colors.primary,
+      textDecorationLine: 'none' as const,
+    },
+    p: {
+      color: theme.colors.text,
+      marginBottom: theme.spacing.small,
+    },
+  };
+
+  const renderersProps = {
+    img: {
+      enableExperimentalPercentWidth: true,
+    },
+  };
+
   return (
     <>
       <Stack.Screen
@@ -297,7 +324,14 @@ export default function ProfileScreen() {
                 <View style={styles.profileInfo}>
                   <Text style={styles.displayName}>{profile.account.display_name}</Text>
                   <Text style={styles.username}>@{profile.account.username}</Text>
-                  <Text style={styles.bio}>{profile.account.bio}</Text>
+
+                  <ContentRenderer
+                    content={profile.account.note}
+                    width={width}
+                    tagsStyles={tagsStyles}
+                    renderersProps={renderersProps}
+                    systemFonts={systemFonts}
+                  />
 
                   <TouchableOpacity
                     style={[

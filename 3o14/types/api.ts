@@ -5,7 +5,7 @@ export interface Account {
   avatar: string;
   acct?: string;
   header: string;
-  bio: string;
+  note: string;
   followers_count: number;
   following_count: number;
   posts_count: number;

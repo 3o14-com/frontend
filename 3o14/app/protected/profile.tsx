@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -20,6 +21,8 @@ import { StorageService } from '@/services/storage';
 import { Account, Post } from '@/types/api';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
+import { ContentRenderer } from '@/components/common/ContentRenderer';
+import { defaultSystemFonts } from 'react-native-render-html';
 
 
 interface EditableProfile {
@@ -42,7 +45,7 @@ export default function ProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
-
+  const { width } = useWindowDimensions();
 
   const handleLogout = async () => {
     try {
@@ -71,7 +74,7 @@ export default function ProfileScreen() {
     if (profile.account) {
       setEditableProfile({
         display_name: profile.account.display_name,
-        bio: profile.account.bio || '',
+        bio: profile.account.note || '',
       });
     }
   }, [profile.account]);
@@ -365,63 +368,148 @@ export default function ProfileScreen() {
     },
   });
 
-  const renderEditingForm = () => (
-    <ScrollView style={styles.profileInfo}>
-      <TextInput
-        style={[styles.input, styles.displayName]}
-        value={editableProfile.display_name}
-        onChangeText={(text) => setEditableProfile(prev => ({ ...prev, display_name: text }))}
-        placeholder="Display Name"
-        placeholderTextColor={theme.colors.textSecondary}
-      />
+  const renderEditingForm = () => {
+    const [formValues, setFormValues] = useState({
+      display_name: editableProfile.display_name,
+      bio: stripHtml(editableProfile.bio)
+    });
 
-      <Text style={styles.username}>@{profile.account?.username}</Text>
+    function stripHtml(html: string): string {
+      // Replace <br> with \n and <p> with \n\n for proper line breaks
+      const withLineBreaks = html
+        .replace(/<br\s*\/?>/gi, '\n') // Handle <br> tags
+        .replace(/<\/p>/gi, '\n\n')   // Handle </p> tags for paragraph endings
+        .replace(/<p>/gi, '');        // Remove opening <p> tags
 
-      <TextInput
-        style={[styles.input, styles.bio]}
-        value={editableProfile.bio}
-        onChangeText={(text) => setEditableProfile(prev => ({ ...prev, bio: text }))}
-        placeholder="Bio"
-        placeholderTextColor={theme.colors.textSecondary}
-        multiline
-      />
+      // Strip remaining HTML tags
+      return withLineBreaks.replace(/<\/?[^>]+(>|$)/g, '').trim();
+    }
 
-      <TouchableOpacity
-        style={styles.imagePickerButton}
-        onPress={() => pickImage('avatar')}
+    const handleSaveProfile = async () => {
+      if (!profile.account) return;
+
+      try {
+        setIsSaving(true);
+        const server = await StorageService.get('server');
+        if (!server) throw new Error('Server not configured');
+
+        // Update editableProfile only when saving
+        setEditableProfile(prev => ({
+          ...prev,
+          display_name: formValues.display_name,
+          bio: formValues.bio
+        }));
+
+        await ApiService.updateProfile(server, {
+          display_name: formValues.display_name,
+          note: formValues.bio,
+          header: editableProfile.header,
+        });
+
+        setProfile(prev => ({
+          ...prev,
+          account: prev.account ? {
+            ...prev.account,
+            display_name: formValues.display_name,
+            bio: formValues.bio,
+            header: editableProfile.header || prev.account.header,
+          } : null,
+        }));
+
+        setIsEditing(false);
+        Alert.alert('Success', 'Profile updated successfully');
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        Alert.alert('Error', 'Failed to update profile');
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    return (
+      <ScrollView
+        style={styles.profileInfo}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={{ color: '#FFFFFF' }}>Change Avatar</Text>
-      </TouchableOpacity>
+        <TextInput
+          style={[styles.input, styles.displayName]}
+          value={formValues.display_name}
+          onChangeText={(text) => setFormValues(prev => ({ ...prev, display_name: text }))}
+          placeholder="Display Name"
+          placeholderTextColor={theme.colors.textSecondary}
+        />
 
-      <TouchableOpacity
-        style={styles.imagePickerButton}
-        onPress={() => pickImage('header')}
-      >
-        <Text style={{ color: '#FFFFFF' }}>Change Header</Text>
-      </TouchableOpacity>
+        <Text style={styles.username}>@{profile.account?.username}</Text>
 
-      <View style={styles.editingContainer}>
+        <TextInput
+          style={[styles.input, styles.bio]}
+          value={formValues.bio}
+          onChangeText={(text) => setFormValues(prev => ({ ...prev, bio: text }))}
+          placeholder="Bio"
+          placeholderTextColor={theme.colors.textSecondary}
+          multiline
+        />
+
         <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => setIsEditing(false)}
-          disabled={isSaving}
+          style={styles.imagePickerButton}
+          onPress={() => pickImage('avatar')}
         >
-          <Text style={{ color: theme.colors.text }}>Cancel</Text>
+          <Text style={{ color: '#FFFFFF' }}>Change Avatar</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSaveProfile}
-          disabled={isSaving}
+          style={styles.imagePickerButton}
+          onPress={() => pickImage('header')}
         >
-          {isSaving ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={{ color: '#FFFFFF' }}>Save</Text>
-          )}
+          <Text style={{ color: '#FFFFFF' }}>Change Header</Text>
         </TouchableOpacity>
-      </View>
-    </ScrollView>
-  );
+
+        <View style={styles.editingContainer}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setIsEditing(false)}
+            disabled={isSaving}
+          >
+            <Text style={{ color: theme.colors.text }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={handleSaveProfile}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={{ color: '#FFFFFF' }}>Save</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  };
+
+  const systemFonts = [...defaultSystemFonts];
+
+  const tagsStyles = {
+    body: {
+      color: theme.colors.text,
+      fontSize: 16,
+    },
+    a: {
+      color: theme.colors.primary,
+      textDecorationLine: 'none' as const,
+    },
+    p: {
+      color: theme.colors.text,
+      marginBottom: theme.spacing.small,
+    },
+  };
+
+  const renderersProps = {
+    img: {
+      enableExperimentalPercentWidth: true,
+    },
+  };
 
   return (
     <>
@@ -463,7 +551,14 @@ export default function ProfileScreen() {
                   <View style={styles.profileInfo}>
                     <Text style={styles.displayName}>{profile.account.display_name}</Text>
                     <Text style={styles.username}>@{profile.account.username}</Text>
-                    <Text style={styles.bio}>{profile.account.bio}</Text>
+
+                    <ContentRenderer
+                      content={profile.account.note}
+                      width={width}
+                      tagsStyles={tagsStyles}
+                      renderersProps={renderersProps}
+                      systemFonts={systemFonts}
+                    />
 
                     <View style={styles.buttonContainer}>
                       <TouchableOpacity
