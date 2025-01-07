@@ -498,4 +498,23 @@ export const ApiService = {
     }
   },
 
+  async searchAccounts(server: string, query: string, limit: number = 20): Promise<Account[]> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = new URL(`https://${server}/api/v1/accounts/search`);
+    url.searchParams.append('q', query);
+    url.searchParams.append('limit', limit.toString());
+
+    const response = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to search accounts');
+    }
+
+    return response.json();
+  },
+
 };

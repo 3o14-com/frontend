@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { Button, Platform, View } from 'react-native';
@@ -13,6 +13,9 @@ export default function ProtectedLayout() {
       <Button title="Logout" onPress={logout} />
     </View>
   );
+
+  const pathname = usePathname();
+  const isComposeScreen = pathname === '/compose';
 
   return (
     <Tabs
@@ -33,7 +36,9 @@ export default function ProtectedLayout() {
           elevation: 0,
           shadowOpacity: 0,
           height: 55,
-          paddingTop: Platform.OS === 'ios' ? 10 : 10,
+          paddingTop: 5,
+          paddingBottom: 10,
+          display: isComposeScreen ? 'none' : 'flex',
         },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.text,
@@ -83,7 +88,7 @@ export default function ProtectedLayout() {
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
               name={focused ? 'add-circle' : 'add-circle-outline'}
-              size={34}
+              size={30}
               color={color}
             />
           ),
