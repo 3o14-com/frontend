@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
+import { Modal, Share, Linking, ActivityIndicator, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Post } from '@/types/api';
@@ -10,6 +10,8 @@ import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { MathJaxContext, MathJax as WebMathJax } from 'better-react-mathjax';
+import Confirm from '@/components/common/Confirm';
+
 
 // @ts-ignore
 import MathJax from 'react-native-mathjax';
@@ -44,8 +46,8 @@ const mathJaxConfig = {
     typeset: false,
   },
   tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
     processEscapes: true,
   },
 };
@@ -55,8 +57,8 @@ const mmlOptions = {
   extensions: ["tex2jax.js"],
   jax: ["input/TeX", "output/HTML-CSS"],
   tex2jax: {
-    inlineMath: [["$", "$"], ["\\(", "\\)"]],
-    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
     processEscapes: true,
   },
   TeX: {
@@ -136,6 +138,8 @@ const NativeContentRenderer: React.FC<ContentRendererProps> = ({
       body {
         background-color: ${theme.colors.background};
         color: ${theme.colors.text};
+        padding-left: 40;
+        padding-right: 8;
       }
       .MathJax {
         display: inline-block;
@@ -173,6 +177,206 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const [isReblogged, setIsReblogged] = useState(post.reblogged || false);
   const [favouritesCount, setFavouritesCount] = useState(post.favourites_count || 0);
   const [reblogsCount, setReblogsCount] = useState(post.reblogs_count || 0);
+
+  const [showModal, setShowModal] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const userId = await StorageService.get('userID');
+      setCurrentUserId(userId);
+    };
+    fetchUserId();
+  }, []);
+
+  const handleShare = async () => {
+    try {
+      if (!server) return;
+      const postUrl = `https://${server}/web/statuses/${post.id}`;
+
+      if (Platform.OS === 'web') {
+        // Copy link to clipboard for web
+        navigator.clipboard.writeText(postUrl);
+      } else {
+        // Share post for non-web platforms
+        await Share.share({
+          message: postUrl,
+        });
+      }
+
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  };
+
+  const [showConfirm, setShowConfirm] = React.useState(false);
+
+  const handleDelete = async () => {
+    if (!server) {
+      Alert.alert('Error', 'Server not configured');
+      return;
+    }
+
+    if (!post?.id || typeof post.id !== 'string') {
+      Alert.alert('Error', 'Invalid post ID');
+      return;
+    }
+
+    if (currentUserId !== post.account.id) return;
+
+    setShowConfirm(true);
+  };
+
+  const deletePost = async () => {
+    if (!server || !post.id) {
+      Alert.alert('Error', 'Server or post ID is missing');
+      return;
+    }
+
+    try {
+      await ApiService.deletePost(server, post.id);
+      Alert.alert('Success', 'Post deleted successfully');
+      setShowModal(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to delete post');
+    } finally {
+      setShowConfirm(false);
+    }
+  };
+
+  const handleOpenOriginal = async () => {
+    if (!server) return;
+    const postUrl = `https://${server}/web/statuses/${post.id}`;
+    try {
+      await Linking.openURL(postUrl);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error opening URL:', error);
+      Alert.alert('Error', 'Could not open link');
+    }
+  };
+
+  const modalStyles = StyleSheet.create({
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: theme.colors.background,
+      borderRadius: 12,
+      padding: theme.spacing.small,
+      width: Platform.OS === 'web' ? 300 : '80%',
+      maxWidth: 400,
+      ...Platform.select({
+        web: {
+          border: `1px solid ${theme.colors.border}`,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+        default: {
+          elevation: 5,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+        },
+      }),
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: theme.spacing.small,
+      paddingHorizontal: theme.spacing.small,
+      borderRadius: 8,
+    },
+    optionText: {
+      color: theme.colors.text,
+      fontSize: 14,
+      marginLeft: theme.spacing.medium,
+      flex: 1,
+    },
+    deleteOption: {
+      backgroundColor: `${theme.colors.error}10`,
+    },
+    deleteText: {
+      color: theme.colors.error,
+    },
+  });
+
+  const renderModal = () => (
+    <Modal
+      visible={showModal}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowModal(false)}
+    >
+      <Pressable
+        style={modalStyles.modalOverlay}
+        onPress={() => setShowModal(false)}
+      >
+        <Pressable
+          style={modalStyles.modalContent}
+          onPress={(e) => e.stopPropagation()}
+        >
+
+          <Pressable
+            style={modalStyles.option}
+            onPress={handleShare}
+          >
+            <Ionicons
+              name={Platform.OS === 'web' ? "copy-outline" : "share-outline"}
+              size={24}
+              color={theme.colors.text}
+            />
+            <Text style={modalStyles.optionText}>
+              {Platform.OS === 'web' ? 'Copy Link' : 'Share Post'}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={modalStyles.option}
+            onPress={handleOpenOriginal}
+          >
+            <Ionicons name="open-outline" size={24} color={theme.colors.text} />
+            <Text style={modalStyles.optionText}>Open Original</Text>
+          </Pressable>
+          {
+            currentUserId === post.account.id && (
+              <>
+                <Pressable
+                  style={[modalStyles.option, modalStyles.deleteOption]}
+                  onPress={handleDelete}
+                >
+                  <Ionicons name="trash-outline" size={24} color={theme.colors.error} />
+                  <Text style={[modalStyles.optionText, modalStyles.deleteText]}>Delete Post</Text>
+                </Pressable>
+
+                {/* Confirm Modal */}
+                <Confirm
+                  visible={showConfirm}
+                  message="Are you sure you want to delete this post?"
+                  options={[
+                    {
+                      text: 'Cancel',
+                      onPress: () => setShowConfirm(false),
+                      style: { backgroundColor: theme.colors.background },
+                    },
+                    {
+                      text: 'Delete',
+                      onPress: deletePost,
+                      style: { backgroundColor: theme.colors.error },
+                    },
+                  ]}
+                  onClose={() => setShowConfirm(false)}
+                />
+              </>
+            )}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 
   React.useEffect(() => {
     (async () => {
@@ -270,17 +474,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       fontSize: 12,
       marginTop: theme.spacing.medium,
       textAlign: "right",
+      paddingRight: 15,
     },
     media: {
-      marginTop: theme.spacing.medium,
+      paddingLeft: 50,
+      paddingRight: 15,
     },
     poll: {
       marginTop: theme.spacing.medium,
       padding: theme.spacing.small,
-      borderWidth: 1,
       borderColor: theme.colors.border,
       borderRadius: theme.borderRadius.small,
       marginBottom: theme.spacing.small,
+      paddingLeft: 50,
     },
     pollOption: {
       marginBottom: theme.spacing.small,
@@ -293,11 +499,21 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     actions: {
       flexDirection: 'row',
       marginTop: 12,
-      justifyContent: 'space-around',
+      justifyContent: 'space-between',
+      paddingLeft: 50,
+    },
+    leftActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    rightActions: {
+      justifyContent: 'flex-end',
+      alignItems: 'center',
     },
     actionButton: {
       flexDirection: 'row',
       alignItems: 'center',
+      paddingRight: 15,
     },
     actionText: {
       fontSize: 16,
@@ -328,7 +544,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     },
     pressed: {
       opacity: 1,
-    }
+    },
   });
 
   const renderersProps = {
@@ -343,6 +559,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     body: {
       color: theme.colors.text,
       fontSize: 16,
+      paddingLeft: 50,
+      paddingRight: 15,
     },
     a: {
       color: theme.colors.primary,
@@ -473,18 +691,29 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
         {post.poll && renderPoll()}
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-            <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={24} color={isLiked ? theme.colors.error : theme.colors.text} />
-            <Text style={[styles.actionText, { color: theme.colors.text }]}>{favouritesCount}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
-            <Ionicons name={isReblogged ? 'repeat' : 'repeat-outline'} size={24} color={isReblogged ? theme.colors.success : theme.colors.text} />
-            <Text style={[styles.actionText, { color: theme.colors.text }]}>{reblogsCount}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleReply}>
-            <Ionicons name={'return-down-back-outline'} size={24} color={theme.colors.text} />
-            <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
-          </TouchableOpacity>
+          <View style={styles.leftActions}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+              <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={20} color={isLiked ? theme.colors.error : theme.colors.text} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>{favouritesCount}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
+              <Ionicons name={isReblogged ? 'repeat' : 'repeat-outline'} size={20} color={isReblogged ? theme.colors.success : theme.colors.text} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>{reblogsCount}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={handleReply}>
+              <Ionicons name={'return-down-back-outline'} size={20} color={theme.colors.text} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.rightActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => setShowModal(true)}
+            >
+              <Ionicons name={'ellipsis-horizontal'} size={20} color={theme.colors.text} />
+            </TouchableOpacity>
+          </View>
+          {renderModal()}
         </View>
 
         <Text style={styles.date}>Posted on {formattedDate}</Text>
