@@ -146,3 +146,17 @@ export interface UpdateProfileResponse {
     verified_at: string | null;
   }>;
 }
+
+export interface Notification {
+  id: string;
+  type: 'mention' | 'reblog' | 'favourite' | 'follow' | 'poll' | 'follow_request';
+  created_at: string;
+  account: Account;
+  status?: Post;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  max_id?: string;
+  min_id?: string;
+}

@@ -22,4 +22,7 @@ export const API_ENDPOINTS = {
   DELETE_STATUS: '/api/v1/statuses/{id}',
   UPLOAD_MEDIA: '/api/v1/media',
   UPDATE_CREDENTIALS: '/api/v1/accounts/update_credentials',
+  NOTIFICATIONS: '/api/v1/notifications',
+  CLEAR_NOTIFICATIONS: '/api/v1/notifications/clear',
+  DISMISS_NOTIFICATION: '/api/v1/notifications/{id}/dismiss',
 };

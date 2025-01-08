@@ -248,6 +248,10 @@ export default function ProfileScreen() {
     postList: {
       marginTop: 16,
     },
+    postContainer: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
   });
 
   const systemFonts = [...defaultSystemFonts];
@@ -307,7 +311,11 @@ export default function ProfileScreen() {
         <FlatList
           data={profile.posts}
           keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item }) => <PostCard post={item} />}
+          renderItem={({ item }) => (
+            <View style={styles.postContainer}>
+              <PostCard post={item} />
+            </View>
+          )}
           ListHeaderComponent={() => (
             profile.account && (
               <>

@@ -1,6 +1,6 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
-import type { CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
+import type { NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
 
 
 export const ApiService = {
@@ -618,6 +618,82 @@ export const ApiService = {
       throw new Error(
         `Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
+    }
+  },
+
+  // In /services/api.ts
+  async getNotifications(
+    server: string,
+  ): Promise<NotificationsResponse> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = new URL(`https://${server}${API_ENDPOINTS.NOTIFICATIONS}`);
+
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Notifications error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Failed to fetch notifications: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Raw notifications response:', data); // Debug log
+
+    return {
+      notifications: Array.isArray(data) ? data : [], // Ensure we always return an array
+      max_id: data.length > 0 ? data[data.length - 1].id : undefined
+    };
+  },
+
+  async clearNotifications(server: string): Promise<void> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const response = await fetch(
+      `https://${server}${API_ENDPOINTS.CLEAR_NOTIFICATIONS}`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to clear notifications');
+    }
+  },
+
+  async dismissNotification(
+    server: string,
+    notificationId: string
+  ): Promise<void> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const endpoint = API_ENDPOINTS.DISMISS_NOTIFICATION.replace(
+      '{id}',
+      notificationId
+    );
+    const response = await fetch(`https://${server}${endpoint}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to dismiss notification');
     }
   },
 

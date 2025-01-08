@@ -105,6 +105,10 @@ export function Timeline({ type }: TimelineProps) {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
+    postContainer: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
   });
 
   if (isLoading) return <Loading />;
@@ -118,7 +122,11 @@ export function Timeline({ type }: TimelineProps) {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => (
+          <View style={styles.postContainer}>
+            <PostCard post={item} />
+          </View>
+        )}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         refreshControl={

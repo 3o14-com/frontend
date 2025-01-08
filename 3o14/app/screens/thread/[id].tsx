@@ -100,12 +100,17 @@ export default function ThreadScreen() {
 
     const indentStyle = {
       marginLeft: depth * 16,
-      borderLeftWidth: depth > 0 ? 1 : 0,
-      borderLeftColor: theme.colors.border,
+      borderLeftWidth: depth == 0 ? 0 : 1,
+    };
+
+    const postStyle = {
+      padding: 12,
+      borderColor: theme.colors.border,
+      borderBottomWidth: 1,
     };
 
     return (
-      <View key={post.id} style={indentStyle}>
+      <View key={post.id} style={[indentStyle, postStyle]}>
         <PostCard post={post} />
         {post.replies?.map((reply) => renderPost(reply, depth + 1))}
       </View>
@@ -189,8 +194,8 @@ export default function ThreadScreen() {
             />
           }
         >
-          {thread.ancestors.map((post) => renderPost(post))}
-          {thread.mainPost && renderPost(thread.mainPost)}
+          {thread.ancestors.map((post) => renderPost(post, 0))}
+          {thread.mainPost && renderPost(thread.mainPost, 0)}
           {thread.descendants.map((post) => renderPost(post, 1))}
         </ScrollView>
       )}

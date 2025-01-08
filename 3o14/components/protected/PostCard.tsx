@@ -289,8 +289,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     container: {
       ...(isBoost ? {} : {
         padding: theme.spacing.medium,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.border,
+        borderBottomWidth: 0,
       }),
       backgroundColor: theme.colors.background,
     },

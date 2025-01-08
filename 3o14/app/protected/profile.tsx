@@ -183,6 +183,11 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleNotification = () => {
+    router.push('/screens/notifications');
+  };
+
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -332,6 +337,10 @@ export default function ProfileScreen() {
       fontSize: 16,
       fontWeight: '600',
       color: '#FFFFFF',
+    },
+    postContainer: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
     },
   });
 
@@ -504,7 +513,7 @@ export default function ProfileScreen() {
           ),
           headerLeft: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
-              <TouchableOpacity onPress={handleLogout}>
+              <TouchableOpacity onPress={handleNotification}>
                 <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
@@ -520,7 +529,11 @@ export default function ProfileScreen() {
           style={styles.container}
           data={profile.posts}
           keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item }) => <PostCard post={item} />}
+          renderItem={({ item }) => (
+            <View style={styles.postContainer}>
+              <PostCard post={item} />
+            </View>
+          )}
           ListHeaderComponent={() => (
             profile.account && (
               <>
