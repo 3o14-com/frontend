@@ -7,9 +7,9 @@ export const mathJaxConfig = {
     typeset: false,
   },
   tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[', '\\]']],
-    processEscapes: true,
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    processEscapes: false,
   },
 };
 

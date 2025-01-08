@@ -3,18 +3,15 @@ import { Modal, Share, Linking, Platform, View, Text, StyleSheet, Image, useWind
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Post } from '@/types/api';
-import RenderHTML, { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
+import { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
 import { format } from 'date-fns';
 import { LogBox } from 'react-native';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import { Ionicons } from '@expo/vector-icons';
-import { MathJaxContext, MathJax as WebMathJax } from 'better-react-mathjax';
 import Confirm from '@/components/common/Confirm';
+import { ContentRenderer } from '@/components/common/ContentRenderer';
 
-
-// @ts-ignore
-import MathJax from 'react-native-mathjax';
 
 LogBox.ignoreLogs([
   'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
@@ -28,147 +25,6 @@ interface PostCardProps {
   onReblog?: (post: Post) => void;
   isBoost?: boolean;
 }
-
-interface ContentRendererProps {
-  content: string;
-  width: number;
-  tagsStyles: Record<string, MixedStyleDeclaration>;
-  renderersProps: any;
-  systemFonts: string[];
-}
-
-const mathJaxConfig = {
-  loader: {
-    load: ['input/tex', 'output/chtml'],
-    timeout: 10000,
-  },
-  startup: {
-    typeset: false,
-  },
-  tex: {
-    inlineMath: [['\\(', '\\)']],
-    displayMath: [['\\[', '\\]']],
-    processEscapes: true,
-  },
-};
-
-const mmlOptions = {
-  messageStyle: "none",
-  extensions: ["tex2jax.js"],
-  jax: ["input/TeX", "output/HTML-CSS"],
-  tex2jax: {
-    inlineMath: [["\\(", "\\)"]],
-    displayMath: [["\\[", "\\]"]],
-    processEscapes: true,
-  },
-  TeX: {
-    extensions: ["AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"],
-  },
-};
-
-declare global {
-  interface Window {
-    MathJax?: {
-      startup?: {
-        promise: Promise<void>;
-      };
-    };
-  }
-}
-
-const WebContentRenderer: React.FC<ContentRendererProps> = ({
-  content,
-  width,
-  tagsStyles,
-  renderersProps,
-  systemFonts,
-}) => {
-  const [mathReady, setMathReady] = useState(false);
-  const [key, setKey] = useState(0);
-
-  useEffect(() => {
-    // Wait for MathJax to be ready before rendering content
-    const checkMathJax = async () => {
-      try {
-        await window.MathJax?.startup?.promise;
-        setMathReady(true);
-        setKey((prev) => prev + 1); // Trigger re-render when MathJax is ready
-      } catch (error) {
-        console.error("MathJax failed to initialize", error);
-      }
-    };
-    checkMathJax();
-  }, []);
-
-  const handleMathJaxError = (error: any) => {
-    console.error('MathJax typesetting error:', error);
-  };
-
-  // Prevent rendering if MathJax isn't ready or content is missing
-  if (!mathReady || !content) {
-    return (
-      <Text></Text>
-    );
-  }
-
-  return (
-    <MathJaxContext key={key} config={mathJaxConfig}>
-      <WebMathJax onError={handleMathJaxError}>
-        <RenderHTML
-          contentWidth={width}
-          source={{ html: content }}
-          systemFonts={systemFonts}
-          tagsStyles={tagsStyles}
-          renderersProps={renderersProps}
-          defaultTextProps={{
-            selectable: true,
-          }}
-          enableExperimentalMarginCollapsing={true}
-        />
-      </WebMathJax>
-    </MathJaxContext>
-  );
-};
-
-const NativeContentRenderer: React.FC<ContentRendererProps> = ({
-  content,
-}) => {
-  const theme = useTheme();
-
-  const mathJaxStyle = `
-    <style>
-      body {
-        background-color: ${theme.colors.background};
-        color: ${theme.colors.text};
-        padding-left: 40;
-        padding-right: 8;
-      }
-      .MathJax {
-        display: inline-block;
-        font-size: 1rem;
-        line-height: 1.5;
-        background-color: ${theme.colors.background};
-        color: ${theme.colors.text};
-      }
-      a {
-        color: ${theme.colors.primary};
-      }
-    </style>
-  `;
-
-  return (
-    <MathJax
-      mathJaxOptions={mmlOptions}
-      html={`${mathJaxStyle}${content}`}
-    />
-  );
-};
-
-const ContentRenderer: React.FC<ContentRendererProps> = (props) => {
-  return Platform.OS === 'web'
-    ? <WebContentRenderer {...props} />
-    : <NativeContentRenderer {...props} />;
-};
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
   const router = useRouter();
@@ -648,6 +504,23 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     }
   };
 
+  const formatContent = (content: string): string => {
+    content = content.replace(/\\\(([\s\S]*?)\\\)/g, (_, latex) => {
+      // Convert LaTeX content inside \( \) to plain text
+      return `\\(${latex.replace(/<[^>]*>/g, '')}\\)`;  // Optionally, remove any HTML tags inside LaTeX
+    });
+
+    content = content.replace(/\\\[([\s\S]*?)\\\]/g, (_, latex) => {
+      // Convert LaTeX content inside \[ \] to plain text
+      return `\\[${latex.replace(/<[^>]*>/g, '')}\\]`; // Optionally, remove any HTML tags inside LaTeX
+    });
+
+    // Then, replace newlines outside LaTeX sections with <br>
+    return content.replace(/(\n)/g, (_) => {
+      return '<br>';
+    });
+  };
+
   const renderContent = () => {
     if (post.reblog && !isBoost) {
       return (
@@ -681,7 +554,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
         </Pressable>
 
         <ContentRenderer
-          content={post.content}
+          content={formatContent(post.content)}
           width={width}
           tagsStyles={tagsStyles}
           renderersProps={renderersProps}

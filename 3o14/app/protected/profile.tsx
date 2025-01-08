@@ -23,6 +23,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { ContentRenderer } from '@/components/common/ContentRenderer';
 import { defaultSystemFonts } from 'react-native-render-html';
+import { Ionicons } from '@expo/vector-icons';
 
 
 interface EditableProfile {
@@ -206,9 +207,6 @@ export default function ProfileScreen() {
       width: 80,
       height: 80,
       overflow: 'hidden',
-      backgroundColor: theme.colors.background,
-    },
-    mainContainer: {
       backgroundColor: theme.colors.background,
     },
     avatar: {
@@ -484,12 +482,33 @@ export default function ProfileScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: false,
+          headerShown: true,
+          title: "",
           headerStyle: {
             backgroundColor: theme.colors.background,
             borderBottomWidth: 0,
           } as any,
           headerTintColor: theme.colors.text,
+          headerRight: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
+              <TouchableOpacity
+                onPress={() => setIsEditing(true)}
+                style={{ marginRight: 16 }}
+              >
+                <Ionicons name="create-outline" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+          ),
+          headerLeft: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
+              <TouchableOpacity onPress={handleLogout}>
+                <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+          ),
         }}
       />
       {isLoading ? (
@@ -498,23 +517,22 @@ export default function ProfileScreen() {
         </View>
       ) : (
         <FlatList
+          style={styles.container}
           data={profile.posts}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={({ item }) => <PostCard post={item} />}
           ListHeaderComponent={() => (
             profile.account && (
               <>
-                <View style={styles.mainContainer}>
+                <Image
+                  source={{ uri: editableProfile.header || profile.account.header }}
+                  style={styles.headerImage}
+                />
+                <View style={styles.avatarContainer}>
                   <Image
-                    source={{ uri: editableProfile.header || profile.account.header }}
-                    style={styles.headerImage}
+                    source={{ uri: editableProfile.avatar || profile.account.avatar }}
+                    style={styles.avatar}
                   />
-                  <View style={styles.avatarContainer}>
-                    <Image
-                      source={{ uri: editableProfile.avatar || profile.account.avatar }}
-                      style={styles.avatar}
-                    />
-                  </View>
                 </View>
                 {isEditing ? (
                   renderEditingForm()
@@ -530,22 +548,6 @@ export default function ProfileScreen() {
                       renderersProps={renderersProps}
                       systemFonts={systemFonts}
                     />
-
-                    <View style={styles.buttonContainer}>
-                      <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => setIsEditing(true)}
-                      >
-                        <Text style={styles.editButtonText}>Edit Profile</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.logoutButton}
-                        onPress={handleLogout}
-                      >
-                        <Text style={styles.logoutButtonText}>Logout</Text>
-                      </TouchableOpacity>
-                    </View>
 
                     <View style={styles.stats}>
                       <TouchableOpacity style={styles.stat} onPress={navigateToFollowers}>

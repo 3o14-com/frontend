@@ -21,7 +21,7 @@ import { MediaPreview } from './MediaPreview';
 import type { ComposeProps, Visibility } from './types';
 import type { CreatePostParams, MediaUploadResponse } from '@/types/api';
 import { StorageService } from '@/services/storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 
 const VISIBILITY_OPTIONS: Visibility[] = [
@@ -50,7 +50,6 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
   const [showContentWarning, setShowContentWarning] = useState(false);
   const [visibility, setVisibility] = useState<Visibility>(VISIBILITY_OPTIONS[0]);
   const [isSelectingVisibility, setIsSelectingVisibility] = useState(false);
-  const router = useRouter();
   const params = useLocalSearchParams() as unknown as ComposeRouteParams;
 
   const styles = StyleSheet.create({
@@ -80,7 +79,7 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
       marginHorizontal: theme.spacing.medium,
     },
     previewBox: {
-      maxHeight: 200,
+      maxHeight: 400,
       borderTopWidth: 1,
       borderColor: theme.colors.border,
       padding: theme.spacing.medium,
@@ -155,7 +154,14 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
     }
   };
 
-  const formattedContent = content.replace(/\n/g, '<br>');
+  const formattedContent = content.replace(/\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]|(\n)/g, (match, ...groups) => {
+    const [, , newline] = groups;
+    if (newline) {
+      return '<br>';
+    }
+    return match;
+  });
+
   const systemFonts = [...defaultSystemFonts];
 
   const tagsStyles = {
@@ -207,7 +213,10 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
           multiline
           placeholder={replyToPost ? "Write your reply..." : "What's on your mind?"}
           value={content}
-          onChangeText={setContent}
+          onChangeText={(text) => {
+            setContent(text);
+            console.log("Current content:", text); // Log the current content
+          }}
           style={[
             styles.input,
             Platform.OS === 'web' && { outline: 'none' },

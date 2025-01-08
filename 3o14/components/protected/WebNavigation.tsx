@@ -87,10 +87,10 @@ export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, them
       flex: 1,
     },
     logoutSection: {
-      paddingBottom: 20,
+      paddingBottom: 13,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,
-      paddingTop: 20,
+      paddingTop: 13,
     },
     logoutButton: {
       flexDirection: 'row',
@@ -182,11 +182,11 @@ export const RightSidebar: React.FC<{ theme: ReturnType<typeof useTheme> }> = ({
       flex: 1,
     },
     bottomSection: {
-      paddingBottom: 20,
+      paddingBottom: 10,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,
       paddingTop: 20,
-      alignItems: 'flex-start',
+      alignItems: 'flex-end',
     },
     title: {
       fontSize: 18,
@@ -231,11 +231,11 @@ export const RightSidebar: React.FC<{ theme: ReturnType<typeof useTheme> }> = ({
       </View>
       <View style={styles.bottomSection}>
         <View style={styles.logoContainer}>
+          <Text style={styles.projectName}>③⓪①④.com</Text>
           <Image
             source={require('@/assets/images/makuro.png')}
             style={styles.logo}
           />
-          <Text style={styles.projectName}>3o14.com</Text>
         </View>
       </View>
     </View>
