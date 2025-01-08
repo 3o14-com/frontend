@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { Text } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import { MathJaxContext, MathJax as WebMathJax } from 'better-react-mathjax';
 import { mathJaxConfig } from './MathJaxConfig';
@@ -39,7 +39,9 @@ export const WebContentRenderer: React.FC<ContentRendererProps> = ({
   }, []);
 
   if (!mathReady || !content) {
-    return <ActivityIndicator size="small" />;
+    return (
+      <Text>...</Text>
+    );
   }
 
   return (

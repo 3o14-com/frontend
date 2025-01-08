@@ -106,7 +106,9 @@ const WebContentRenderer: React.FC<ContentRendererProps> = ({
 
   // Prevent rendering if MathJax isn't ready or content is missing
   if (!mathReady || !content) {
-    return <ActivityIndicator size="small" />;
+    return (
+      <Text></Text>
+    );
   }
 
   return (
