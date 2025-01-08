@@ -107,8 +107,8 @@ export default function FollowingScreen() {
     }
   };
 
-  const navigateToProfile = (username: string) => {
-    router.push(`/screens/profile/${username}`);
+  const navigateToProfile = (account: string | undefined) => {
+    router.push(`/screens/profile/${account}`);
   };
 
   const openWebView = useCallback(() => {
@@ -121,7 +121,7 @@ export default function FollowingScreen() {
   const renderItem = ({ item }: { item: Account }) => (
     <TouchableOpacity
       style={styles.accountItem}
-      onPress={() => navigateToProfile(item.username)}
+      onPress={() => navigateToProfile(item.acct)}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.accountInfo}>

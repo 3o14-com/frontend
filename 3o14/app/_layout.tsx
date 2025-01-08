@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
+import { Platform, useWindowDimensions } from 'react-native';
 import { StorageService } from '@/services/storage';
 import { Loading } from '@/components/common/Loading';
 import { useTheme } from '@/hooks/useTheme';
+import { WebLayout } from '@/components/protected/WebLayout';
+import { usePathname } from 'expo-router';
 
 export default function RootLayout() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const theme = useTheme();
+  const { width } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
+  const pathname = usePathname();
+
+  const isScreenRoute = pathname.startsWith('/screens/');
+  const showWebLayout = isWeb && width > 768 && isScreenRoute;
 
   useEffect(() => {
     const checkInitialAuth = async () => {
@@ -30,25 +39,22 @@ export default function RootLayout() {
     return <Loading />;
   }
 
+  const screenOptions = {
+    headerShown: false,
+    contentStyle: {
+      backgroundColor: theme.colors.background,
+    },
+  };
+
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: {
-          backgroundColor: theme.colors.background,
-        },
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="auth" />
-      <Stack.Screen name="protected" />
-      <Stack.Screen
-        name="screens"
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
-    </Stack>
+    <>
+      {showWebLayout ? (
+        <WebLayout>
+          <Stack screenOptions={screenOptions} />
+        </WebLayout>
+      ) : (
+        <Stack screenOptions={screenOptions} />
+      )}
+    </>
   );
 }

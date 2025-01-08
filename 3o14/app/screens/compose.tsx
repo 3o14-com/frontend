@@ -52,7 +52,7 @@ export default function ComposeModal() {
               style={styles.headerButton}
               onPress={handleClose}
             >
-              <Ionicons name="close" size={24} color={theme.colors.text} />
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
             </TouchableOpacity>
           ),
         }}

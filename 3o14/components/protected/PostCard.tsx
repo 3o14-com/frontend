@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Share, Linking, ActivityIndicator, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
+import { Modal, Share, Linking, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import { Post } from '@/types/api';

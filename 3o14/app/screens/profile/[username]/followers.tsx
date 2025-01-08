@@ -35,7 +35,7 @@ export default function FollowersScreen() {
     setIsProcessing(true);
     for (const account of accounts) {
       setFollowers(prev => {
-        if (prev.some(f => f.id === account.id)) return prev;
+        if (prev.some(f => f.acct === account.id)) return prev;
         return [...prev, account];
       });
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -107,8 +107,8 @@ export default function FollowersScreen() {
     }
   };
 
-  const navigateToProfile = (username: string) => {
-    router.push(`/screens/profile/${username}`);
+  const navigateToProfile = (account: string | undefined) => {
+    router.push(`/screens/profile/${account}`);
   };
 
   const openWebView = useCallback(() => {
@@ -121,7 +121,7 @@ export default function FollowersScreen() {
   const renderItem = ({ item }: { item: Account }) => (
     <TouchableOpacity
       style={styles.accountItem}
-      onPress={() => navigateToProfile(item.username)}
+      onPress={() => navigateToProfile(item.acct)}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.accountInfo}>
