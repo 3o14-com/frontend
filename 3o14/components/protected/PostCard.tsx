@@ -11,6 +11,8 @@ import { StorageService } from '@/services/storage';
 import { Ionicons } from '@expo/vector-icons';
 import Confirm from '@/components/common/Confirm';
 import { ContentRenderer } from '@/components/common/ContentRenderer';
+import { MediaGrid } from '@/components/common/Media/MediaGrid';
+import { MediaViewer } from '@/components/common/Media/MediaViewer';
 
 
 LogBox.ignoreLogs([
@@ -432,27 +434,26 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     },
   };
 
-  const calculateImageHeight = (media: any) => {
-    const screenWidth = width - (theme.spacing.medium * 2);
-    if (media.meta?.original?.width && media.meta?.original?.height) {
-      return screenWidth * (media.meta.original.height / media.meta.original.width);
-    }
-    return screenWidth;
-  };
+  const renderMedia = () => {
+    const [selectedMediaIndex, setSelectedMediaIndex] = useState(-1);
 
-  const renderMediaAttachments = () =>
-    post.media_attachments.map((media) => {
-      const imageHeight = calculateImageHeight(media);
-      return (
-        <View key={media.id} style={styles.mediaContainer}>
-          <Image
-            source={{ uri: media.preview_url }}
-            style={[styles.image, { height: imageHeight }]}
-            resizeMode="contain"
-          />
-        </View>
-      );
-    });
+    if (!post.media_attachments?.length) return null;
+
+    return (
+      <View style={styles.mediaContainer}>
+        <MediaGrid
+          mediaAttachments={post.media_attachments}
+          onMediaPress={(index) => setSelectedMediaIndex(index)}
+        />
+        <MediaViewer
+          visible={selectedMediaIndex !== -1}
+          mediaItems={post.media_attachments}
+          initialIndex={selectedMediaIndex}
+          onClose={() => setSelectedMediaIndex(-1)}
+        />
+      </View>
+    );
+  };
 
   const renderPoll = () => (
     <View style={styles.poll}>
@@ -565,7 +566,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
           />
         </View>
 
-        {post.media_attachments.length > 0 && <View style={styles.media}>{renderMediaAttachments()}</View>}
+        <View style={styles.media}>
+          {post.media_attachments.length > 0 && renderMedia()}
+        </View>
 
         {post.poll && renderPoll()}
 
