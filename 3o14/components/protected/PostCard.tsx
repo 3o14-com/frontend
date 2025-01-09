@@ -402,6 +402,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     pressed: {
       opacity: 1,
     },
+    renderedContent: {
+      paddingLeft: 40,
+    },
   });
 
   const renderersProps = {
@@ -416,7 +419,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     body: {
       color: theme.colors.text,
       fontSize: 16,
-      paddingLeft: 50,
+      paddingLeft: 8,
       paddingRight: 15,
     },
     a: {
@@ -552,13 +555,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
           </View>
         </Pressable>
 
-        <ContentRenderer
-          content={formatContent(post.content)}
-          width={width}
-          tagsStyles={tagsStyles}
-          renderersProps={renderersProps}
-          systemFonts={systemFonts}
-        />
+        <View style={styles.renderedContent}>
+          <ContentRenderer
+            content={formatContent(post.content)}
+            width={width}
+            tagsStyles={tagsStyles}
+            renderersProps={renderersProps}
+            systemFonts={systemFonts}
+          />
+        </View>
 
         {post.media_attachments.length > 0 && <View style={styles.media}>{renderMediaAttachments()}</View>}
 

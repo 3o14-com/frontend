@@ -29,8 +29,7 @@ export function Timeline({ type }: TimelineProps) {
     try {
       const server = await StorageService.get('server');
       if (!server) {
-        Alert.alert('Error', 'Server configuration not found. Please login again.');
-        logout();
+        console.error('Server configuration not found. Please login again.');
         return;
       }
 
@@ -47,34 +46,7 @@ export function Timeline({ type }: TimelineProps) {
         setHasMore(false);
       }
     } catch (error) {
-      // Determine if the error is authentication-related
-      const errorMessage = error instanceof Error ? error.message : '';
-      const isAuthError = errorMessage.toLowerCase().includes('unauthorized') ||
-        errorMessage.toLowerCase().includes('forbidden') ||
-        errorMessage.includes('401') ||
-        errorMessage.includes('403');
-
-      if (isAuthError) {
-        Alert.alert(
-          'Authentication Error',
-          'Your session has expired. Please login again.',
-          [{ text: 'OK', onPress: () => logout() }]
-        );
-      } else {
-        // For network or other errors, show alert but don't logout
-        Alert.alert(
-          'Network Error',
-          'Failed to fetch timeline. Please check your connection and try again.',
-          [{
-            text: 'OK',
-            onPress: () => setIsLoading(false)
-          },
-          {
-            text: 'Retry',
-            onPress: () => fetchTimeline(refresh)
-          }],
-        );
-      }
+      console.error('Session check failed:', error);
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);

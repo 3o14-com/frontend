@@ -15,8 +15,6 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
       body {
         background-color: ${theme.colors.background};
         color: ${theme.colors.text};
-        padding-left: 40;
-        padding-right: 8;
       }
       .MathJax {
         display: inline-block;
