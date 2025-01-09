@@ -215,7 +215,6 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
           value={content}
           onChangeText={(text) => {
             setContent(text);
-            console.log("Current content:", text); // Log the current content
           }}
           style={[
             styles.input,

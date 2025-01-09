@@ -50,7 +50,6 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Session check failed:', error);
-        await logout();
       }
     };
 
