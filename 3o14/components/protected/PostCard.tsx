@@ -94,10 +94,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
     try {
       await ApiService.deletePost(server, post.id);
-      Alert.alert('Success', 'Post deleted successfully');
+      console.log('Post deleted successfully');
       setShowModal(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete post');
+      console.log('Error deleting post:', error);
     } finally {
       setShowConfirm(false);
     }

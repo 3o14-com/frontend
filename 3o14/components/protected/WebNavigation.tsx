@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Pressable, StyleSheet, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { StorageService } from '@/services/storage';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -73,6 +73,7 @@ interface WebNavigationProps {
 }
 
 export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, theme }) => {
+  const currentPath = usePathname();
   const styles = StyleSheet.create({
     webNavContainer: {
       width: 250,
@@ -116,30 +117,39 @@ export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, them
   return (
     <View style={[styles.webNavContainer, { backgroundColor: theme.colors.background }]}>
       <View style={styles.navigationSection}>
-        {navigationItems.map((item) => (
-          <Pressable
-            key={item.name}
-            style={({ pressed }) => [
-              styles.webNavItem,
-              {
-                backgroundColor: pressed
-                  ? theme.colors.border
-                  : theme.colors.background,
-                opacity: pressed ? 0.8 : 1,
-              },
-            ]}
-            onPress={() => router.push(item.path as any)}
-          >
-            <Ionicons
-              name={currentRoute === item.name ? item.icon.focused : item.icon.outline}
-              size={item.size || 22}
-              color={currentRoute === item.name ? theme.colors.primary : theme.colors.text}
-            />
-            <Text style={[styles.webNavText, { color: currentRoute === item.name ? theme.colors.primary : theme.colors.text }]}>
-              {item.title}
-            </Text>
-          </Pressable>
-        ))}
+        {navigationItems.map((item) => {
+          const isExactMatch = currentPath === item.path;
+
+          return (
+            <Pressable
+              key={item.name}
+              style={({ pressed }) => [
+                styles.webNavItem,
+                {
+                  backgroundColor: pressed
+                    ? theme.colors.border
+                    : theme.colors.background,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+              onPress={() => router.push(item.path as any)}
+            >
+              <Ionicons
+                name={isExactMatch ? item.icon.focused : item.icon.outline}
+                size={item.size || 22}
+                color={isExactMatch ? theme.colors.primary : theme.colors.text}
+              />
+              <Text
+                style={[
+                  styles.webNavText,
+                  { color: isExactMatch ? theme.colors.primary : theme.colors.text }
+                ]}
+              >
+                {item.title}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
       <View style={styles.logoutSection}>
         <Pressable

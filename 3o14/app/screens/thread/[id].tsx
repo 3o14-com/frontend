@@ -160,11 +160,9 @@ export default function ThreadScreen() {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            borderBottomWidth: 0,
-            borderTopWidth: 0,
-          } as any,
+          },
           headerTintColor: theme.colors.text,
+          headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity
               style={styles.backButton}

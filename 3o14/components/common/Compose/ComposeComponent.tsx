@@ -123,7 +123,7 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      Alert.alert('Error', 'Post content cannot be empty');
+      console.log('Error', 'Post content cannot be empty');
       return;
     }
 

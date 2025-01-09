@@ -189,10 +189,9 @@ export default function FollowersScreen() {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            borderBottomWidth: 0,
-          } as any,
+          },
           headerTintColor: theme.colors.text,
+          headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />

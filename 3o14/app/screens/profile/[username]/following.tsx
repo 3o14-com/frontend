@@ -189,9 +189,8 @@ export default function FollowingScreen() {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            borderBottomWidth: 0,
-          } as any,
+          },
+          headerShadowVisible: false,
           headerTintColor: theme.colors.text,
           headerLeft: () => (
             <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>

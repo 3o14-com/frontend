@@ -393,10 +393,9 @@ export default function ProfileScreen() {
         }));
 
         setIsEditing(false);
-        Alert.alert('Success', 'Profile updated successfully');
+        console.log('Profile updated successfully');
       } catch (error) {
         console.error('Error updating profile:', error);
-        Alert.alert('Error', 'Failed to update profile');
       } finally {
         setIsSaving(false);
       }
@@ -495,8 +494,8 @@ export default function ProfileScreen() {
           title: "",
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomWidth: 0,
-          } as any,
+          },
+          headerShadowVisible: false,
           headerTintColor: theme.colors.text,
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>

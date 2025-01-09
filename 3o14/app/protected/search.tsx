@@ -148,8 +148,7 @@ export default function Search() {
     try {
       const server = await StorageService.get('server');
       if (!server) {
-        Alert.alert('Error', 'Server configuration not found. Please login again.');
-        logout();
+        console.log('Server configuration not found. Please login again.');
         return;
       }
 

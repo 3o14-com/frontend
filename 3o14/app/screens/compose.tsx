@@ -42,10 +42,8 @@ export default function ComposeModal() {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomColor: theme.colors.border,
-            borderBottomWidth: 0,
-            borderTopWidth: 0,
-          } as any,
+          },
+          headerShadowVisible: false,
           headerTintColor: theme.colors.text,
           headerLeft: () => (
             <TouchableOpacity

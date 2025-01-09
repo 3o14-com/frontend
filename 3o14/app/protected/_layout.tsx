@@ -79,10 +79,13 @@ export default function ProtectedLayout() {
             ...styles.tabBar,
             backgroundColor: theme.colors.background,
             borderRightColor: theme.colors.border,
+            elevation: 0,
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarActiveBackgroundColor: theme.colors.background,
           tabBarInactiveTintColor: theme.colors.text,
+          tabBarHideOnKeyboard: true,
+          tabBarVariant: 'uikit',
           tabBarLabelStyle: {
             display: 'none',
           },
