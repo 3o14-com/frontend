@@ -2,7 +2,6 @@ import React, { useState, useEffect, memo } from 'react';
 import {
   Modal,
   View,
-  Text,
   StyleSheet,
   Image,
   useWindowDimensions,
@@ -74,7 +73,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   const theme = useTheme();
   const { width, height } = useWindowDimensions();
   const validInitialIndex = Math.max(0, Math.min(initialIndex, mediaItems.length - 1));
-  const [currentIndex, setCurrentIndex] = useState(validInitialIndex);
+  const [_, setCurrentIndex] = useState(validInitialIndex);
 
   useEffect(() => {
     if (Platform.OS !== 'web' && visible) {
@@ -149,17 +148,6 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             activeOffsetX: [-10, 10],
           }}
         />
-
-        {mediaItems.length > 1 && (
-          <View style={styles.pagination}>
-            <Text style={[
-              styles.paginationText,
-              { color: Platform.OS === 'web' ? theme.colors.text : '#fff' }
-            ]}>
-              {currentIndex + 1} / {mediaItems.length}
-            </Text>
-          </View>
-        )}
       </View>
     </Modal>
   );
