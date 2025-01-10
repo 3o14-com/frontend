@@ -43,6 +43,7 @@ export default function ComposeModal() {
           headerStyle: {
             backgroundColor: theme.colors.background,
           },
+          presentation: 'transparentModal',
           headerShadowVisible: false,
           headerTintColor: theme.colors.text,
           headerLeft: () => (

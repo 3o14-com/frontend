@@ -35,8 +35,8 @@ export default function ComposeScreen() {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
-            borderBottomWidth: 0,
-          } as any,
+          },
+          presentation: 'transparentModal',
           headerTintColor: theme.colors.text,
           headerShadowVisible: false,
           headerLeft: () => (

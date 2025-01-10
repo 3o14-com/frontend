@@ -175,7 +175,6 @@ export default function NotificationsScreen() {
     },
     clearButton: {
       padding: 8,
-      marginRight: 16,
     },
     clearButtonText: {
       color: theme.colors.primary,
@@ -192,6 +191,7 @@ export default function NotificationsScreen() {
           headerStyle: {
             backgroundColor: theme.colors.background,
           },
+          presentation: 'transparentModal',
           headerShadowVisible: false,
           headerTintColor: theme.colors.text,
           headerLeft: () => (

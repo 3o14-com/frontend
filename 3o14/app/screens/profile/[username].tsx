@@ -287,6 +287,7 @@ export default function ProfileScreen() {
             backgroundColor: theme.colors.background,
           },
           headerShadowVisible: false,
+          presentation: 'transparentModal',
           headerTintColor: theme.colors.text,
           headerLeft: () => (
             <TouchableOpacity

@@ -191,6 +191,7 @@ export default function FollowersScreen() {
             backgroundColor: theme.colors.background,
           },
           headerTintColor: theme.colors.text,
+          presentation: 'transparentModal',
           headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
