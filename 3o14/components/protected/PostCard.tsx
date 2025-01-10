@@ -326,10 +326,10 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     },
     fediverseId: {
       fontStyle: 'italic',
-      color: theme.colors.text,
+      color: theme.colors.textSecondary,
     },
     date: {
-      color: theme.colors.text,
+      color: theme.colors.textSecondary,
       fontSize: 12,
       marginTop: theme.spacing.medium,
       textAlign: "right",

@@ -12,7 +12,6 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import Carousel from 'react-native-reanimated-carousel';
 import { MediaAttachment } from '@/types/api';
-import { useTheme } from '@/hooks/useTheme';
 import { runOnJS } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -70,7 +69,6 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   initialIndex,
   onClose,
 }) => {
-  const theme = useTheme();
   const { width, height } = useWindowDimensions();
   const validInitialIndex = Math.max(0, Math.min(initialIndex, mediaItems.length - 1));
   const [_, setCurrentIndex] = useState(validInitialIndex);
@@ -126,7 +124,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
     >
       <View style={[
         styles.modalContainer,
-        { backgroundColor: Platform.OS === 'web' ? theme.colors.background : 'black' }
+        { backgroundColor: 'black' }
       ]}>
         {Platform.OS === 'web' && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
