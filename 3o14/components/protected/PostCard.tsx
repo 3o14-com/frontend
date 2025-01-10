@@ -13,6 +13,7 @@ import Confirm from '@/components/common/Confirm';
 import { ContentRenderer } from '@/components/common/ContentRenderer';
 import { MediaGrid } from '@/components/common/Media/MediaGrid';
 import { MediaViewer } from '@/components/common/Media/MediaViewer';
+import { useAuth } from '@/hooks/useAuth';
 
 
 LogBox.ignoreLogs([
@@ -37,6 +38,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const [isReblogged, setIsReblogged] = useState(post.reblogged || false);
   const [favouritesCount, setFavouritesCount] = useState(post.favourites_count || 0);
   const [reblogsCount, setReblogsCount] = useState(post.reblogs_count || 0);
+  const { user } = useAuth();
+  console.log('user', user);
 
   const [showModal, setShowModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -473,14 +476,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const handleProfilePress = () => {
     try {
-      const username = post.account.acct
-
-      if (!username) {
-        console.error('Could not determine username for profile navigation');
+      if (!user) {
+        console.error('No logged-in user found.');
         return;
       }
 
-      router.push(`/screens/profile/${username}`);
+      const username = post.account.acct;
+      console.log('username', username);
+
+      if (user.username === username) {
+        router.push(`/protected/profile`);
+      } else {
+        router.push(`/screens/profile/${username}`);
+      }
     } catch (error) {
       console.error('Error navigating to profile:', error);
     }

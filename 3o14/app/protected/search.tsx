@@ -139,7 +139,7 @@ export default function Search() {
   const [loadingStatus, setLoadingStatus] = useState<{ [key: string]: boolean }>({});
   const theme = useTheme();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -153,15 +153,18 @@ export default function Search() {
       }
 
       const accounts = await ApiService.searchAccounts(server, query.trim());
-      setResults(accounts);
 
-      // Fetch relationship status for each account
+      // Filter out the logged-in user
+      const filteredAccounts = accounts.filter(account => account.acct !== user?.username);
+
+      setResults(filteredAccounts);
+
       const relationships = await Promise.all(
-        accounts.map(account => ApiService.getRelationship(server, account.id))
+        filteredAccounts.map(account => ApiService.getRelationship(server, account.id))
       );
 
       const newFollowingStatus = relationships.reduce((acc, rel, index) => {
-        acc[accounts[index].id] = rel.following;
+        acc[filteredAccounts[index].id] = rel.following;
         return acc;
       }, {} as { [key: string]: boolean });
 
