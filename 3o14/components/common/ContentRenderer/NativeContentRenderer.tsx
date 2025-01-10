@@ -2,31 +2,53 @@
 import MathJax from 'react-native-mathjax';
 import { useTheme } from '@/hooks/useTheme';
 import { mmlOptions } from './MathJaxConfig';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import type { ContentRendererProps } from './types';
+
+const containsLatexDelimiters = (content: string): boolean => {
+  // Check for display math \[ \] or inline math \( \) 
+  // Using regex with 's' flag to match across multiple lines
+  const displayMathPattern = /\\\[[\s\S]*?\\\]/;
+  const inlineMathPattern = /\\\([\s\S]*?\\\)/;
+
+  return displayMathPattern.test(content) || inlineMathPattern.test(content);
+};
 
 export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
   content,
 }) => {
   const theme = useTheme();
+  const { width } = useWindowDimensions();
 
-  // 1. Comprehensive styling to prevent white flash
+  const tagsStyles = {
+    body: {
+      color: theme.colors.text,
+      marginLeft: 8,
+      fontSize: 16,
+    },
+    a: {
+      color: theme.colors.primary,
+      textDecorationLine: 'none' as const,
+    },
+    p: {
+      color: theme.colors.text,
+      marginBottom: theme.spacing.small,
+    },
+  };
+
+  // MathJax styling
   const mathJaxStyle = `
     <style>
-      /* Root level background control */
       html, body {
         margin: 4;
         padding: 0;
         background-color: ${theme.colors.background} !important;
         color: ${theme.colors.text};
       }
-
-      /* WebView container background */
       #MathJax_Message {
         display: none !important;
       }
-
-      /* MathJax specific styling */
       .MathJax {
         display: inline-block;
         font-size: 1rem;
@@ -34,31 +56,22 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
         background-color: ${theme.colors.background} !important;
         color: ${theme.colors.text};
       }
-
-      /* MathJax preview elements */
       .MathJax_Preview {
         background-color: ${theme.colors.background} !important;
         color: ${theme.colors.text};
       }
-
-      /* MathJax processing message suppression */
       .MathJax_Processing {
         display: none !important;
       }
-
-      /* Additional element styling */
       a {
         color: ${theme.colors.primary};
       }
-
-      /* Force background on any dynamically created elements */
       * {
         background-color: ${theme.colors.background} !important;
       }
     </style>
   `;
 
-  // 2. Enhanced MathJax configuration
   const enhancedMmlOptions = {
     ...mmlOptions,
     showProcessingMessages: false,
@@ -70,7 +83,7 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
     },
   };
 
-  // 3. Wrap content in container with background control
+  // Wrap content for MathJax
   const wrappedContent = `
     <html>
       <head>
@@ -82,13 +95,23 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
     </html>
   `;
 
+  const hasMathContent = containsLatexDelimiters(content);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <MathJax
-        style={styles.mathJax}
-        mathJaxOptions={enhancedMmlOptions}
-        html={wrappedContent}
-      />
+      {hasMathContent ? (
+        <MathJax
+          style={styles.mathJax}
+          mathJaxOptions={enhancedMmlOptions}
+          html={wrappedContent}
+        />
+      ) : (
+        <RenderHtml
+          contentWidth={width}
+          source={{ html: content }}
+          tagsStyles={tagsStyles}
+        />
+      )}
     </View>
   );
 };
