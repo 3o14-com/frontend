@@ -697,21 +697,26 @@ export const ApiService = {
     }
   },
 
-  async votePoll(server: string, pollId: string, choices: number): Promise<Poll> {
+
+  async votePoll(server: string, pollId: string, choices: number[]): Promise<Poll> {
     const accessToken = await StorageService.get('accessToken');
     if (!accessToken) throw new Error('Not authenticated');
 
+    // Always send choices as an array regardless of length
     const response = await fetch(`https://${server}/api/v1/polls/${pollId}/votes`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ choices: [choices] }),
+      body: JSON.stringify({
+        choices: choices
+      }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to submit vote');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to submit vote');
     }
 
     return response.json();

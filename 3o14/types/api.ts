@@ -67,6 +67,7 @@ export interface Poll {
   expires_at: string;
   expired: boolean;
   multiple: boolean;
+  voted: boolean;
   votes_count: number;
   options: { title: string; votes_count: number }[];
 }

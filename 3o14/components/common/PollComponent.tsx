@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { formatDistanceToNow, isPast } from 'date-fns';
@@ -7,17 +7,35 @@ import type { Poll } from '@/types/api';
 
 interface PollComponentProps {
   poll: Poll;
-  onVote?: (optionIndex: number) => void;
+  onVote?: (choices: number[]) => Promise<void>;
   isOwnPoll?: boolean;
+  voted?: boolean;
 }
 
-export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOwnPoll = false }) => {
+export const PollComponent: React.FC<PollComponentProps> = ({
+  poll,
+  onVote,
+  isOwnPoll = false,
+  voted = false,
+}) => {
   const theme = useTheme();
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const [isVoting, setIsVoting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>('');
+  const [hasVoted, setHasVoted] = useState(voted);
+  const [localPoll, setLocalPoll] = useState<Poll>(poll);
 
-  const totalVotes = poll?.votes_count || 0;
+  const totalVotes = localPoll?.votes_count || 0;
+  const isMultipleChoice = localPoll.multiple;
+  const isReadOnly = hasVoted || localPoll.expired || isOwnPoll;
+
+  useEffect(() => {
+    setLocalPoll(poll);
+  }, [poll]);
+
+  useEffect(() => {
+    setHasVoted(voted);
+  }, [voted]);
 
   useEffect(() => {
     const updateTimeLeft = () => {
@@ -34,27 +52,57 @@ export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOw
     };
 
     updateTimeLeft();
-    const timer = setInterval(updateTimeLeft, 60000); // Update every minute
-
+    const timer = setInterval(updateTimeLeft, 60000);
     return () => clearInterval(timer);
   }, [poll.expires_at]);
 
+  const handleOptionSelect = (index: number) => {
+    if (isReadOnly) return;
+
+    setSelectedOptions(prev => {
+      if (isMultipleChoice) {
+        // For multiple choice: toggle the selected option
+        return prev.includes(index)
+          ? prev.filter(i => i !== index)
+          : [...prev, index];
+      } else {
+        // For single choice: replace the selection
+        return [index];
+      }
+    });
+  };
+
   const handleVote = async () => {
-    if (selectedOption === null || isVoting) return;
+    if (selectedOptions.length === 0 || isVoting || isReadOnly || !onVote) return;
 
     setIsVoting(true);
+    const originalPoll = { ...localPoll };
+
     try {
-      if (onVote) {
-        onVote(selectedOption);
-      }
+      // Optimistically update UI
+      const updatedPoll = { ...localPoll };
+      selectedOptions.forEach(index => {
+        if (updatedPoll.options[index]) {
+          updatedPoll.options[index].votes_count += 1;
+        }
+      });
+      updatedPoll.votes_count += 1;
+      setLocalPoll(updatedPoll);
+
+      // Submit the vote
+      await onVote(selectedOptions);
+
+      // Mark as voted after successful submission
+      setHasVoted(true);
     } catch (error) {
-      console.error('Failed to vote:', error);
+      console.error('Vote submission error:', error);
+      // Revert optimistic update on error
+      setLocalPoll(originalPoll);
+      Alert.alert('Error', 'Failed to submit vote');
     } finally {
       setIsVoting(false);
     }
   };
-
-  const canVote = !poll?.expired && !isVoting && !isOwnPoll;
 
   const styles = StyleSheet.create({
     container: {
@@ -86,11 +134,6 @@ export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOw
       borderRadius: theme.borderRadius.small,
       overflow: 'hidden',
       borderWidth: 1,
-    },
-    optionButtonSelected: {
-      borderColor: theme.colors.primary,
-    },
-    optionButtonUnselected: {
       borderColor: theme.colors.border,
     },
     progressBar: {
@@ -109,23 +152,6 @@ export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOw
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
-    },
-    radioButton: {
-      width: 20,
-      height: 20,
-      borderRadius: 10,
-      borderWidth: 2,
-      marginRight: theme.spacing.small,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    radioSelected: {
-      borderColor: theme.colors.primary,
-      backgroundColor: theme.colors.primary,
-    },
-    radioUnselected: {
-      borderColor: theme.colors.border,
-      backgroundColor: 'transparent',
     },
     optionTitle: {
       flex: 1,
@@ -157,12 +183,6 @@ export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOw
     voteButtonTextDisabled: {
       color: theme.colors.textSecondary,
     },
-    pollStatus: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      marginTop: theme.spacing.small,
-      fontStyle: 'italic',
-    },
   });
 
   return (
@@ -176,65 +196,103 @@ export const PollComponent: React.FC<PollComponentProps> = ({ poll, onVote, isOw
         </Text>
       </View>
 
-      <View style={styles.optionsContainer}>
-        {poll?.options.map((option, index) => {
-          const percentage = totalVotes > 0
-            ? Math.round((option.votes_count / totalVotes) * 100)
-            : 0;
+      {isReadOnly && (
+        <View style={styles.optionsContainer}>
+          {poll?.options.map((option, index) => {
+            const percentage = totalVotes > 0
+              ? Math.round((option.votes_count / totalVotes) * 100)
+              : 0;
 
-          return (
-            <TouchableOpacity
-              key={index}
-              onPress={() => canVote && setSelectedOption(index)}
-              disabled={!canVote}
-              style={[
-                styles.optionButton,
-                selectedOption === index ? styles.optionButtonSelected : styles.optionButtonUnselected
-              ]}
-            >
-              <View style={[styles.progressBar, { width: `${percentage}%` }]} />
+            return (
+              <View
+                key={index}
+                style={styles.optionButton}
+              >
+                <View style={[styles.progressBar, { width: `${percentage}%` }]} />
 
-              <View style={styles.optionContent}>
-                <View style={styles.optionLeft}>
-                  {canVote && (
-                    <View style={[
-                      styles.radioButton,
-                      selectedOption === index ? styles.radioSelected : styles.radioUnselected
-                    ]}>
-                      {selectedOption === index && (
-                        <Ionicons name="checkmark" size={16} color={theme.colors.background} />
-                      )}
-                    </View>
-                  )}
-                  <Text style={styles.optionTitle}>
-                    {option.title}
+                <View style={styles.optionContent}>
+                  <View style={styles.optionLeft}>
+                    <Text style={styles.optionTitle}>
+                      {option.title}
+                    </Text>
+                  </View>
+                  <Text style={styles.percentage}>
+                    {percentage}%
                   </Text>
                 </View>
-                <Text style={styles.percentage}>
-                  {percentage}%
-                </Text>
               </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+            );
+          })}
+        </View>
+      )}
 
-      {canVote && (
-        <TouchableOpacity
-          onPress={handleVote}
-          disabled={selectedOption === null || isVoting}
-          style={[
-            styles.voteButton,
-            selectedOption !== null ? styles.voteButtonEnabled : styles.voteButtonDisabled
-          ]}
-        >
-          <Text style={[
-            styles.voteButtonText,
-            selectedOption !== null ? styles.voteButtonTextEnabled : styles.voteButtonTextDisabled
-          ]}>
-            {isVoting ? 'Voting...' : 'Submit Vote'}
-          </Text>
-        </TouchableOpacity>
+      {!isReadOnly && (
+        <>
+          <View style={styles.optionsContainer}>
+            {poll?.options.map((option, index) => {
+              const isSelected = selectedOptions.includes(index);
+
+              return (
+                <TouchableOpacity
+                  key={`selection-${index}`}
+                  onPress={() => handleOptionSelect(index)}
+                  style={[
+                    styles.optionButton,
+                    isSelected && { borderColor: theme.colors.primary }
+                  ]}
+                >
+                  <View style={styles.optionContent}>
+                    <View style={styles.optionLeft}>
+                      <View style={[
+                        {
+                          width: 20,
+                          height: 20,
+                          borderRadius: isMultipleChoice ? 4 : 10,
+                          borderWidth: 2,
+                          marginRight: theme.spacing.small,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+                          backgroundColor: isSelected ? theme.colors.primary : 'transparent',
+                        }
+                      ]}>
+                        {isSelected && (
+                          <Ionicons
+                            name={isMultipleChoice ? "checkmark" : "radio-button-on"}
+                            size={16}
+                            color={theme.colors.background}
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.optionTitle}>
+                        {option.title}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {!isReadOnly && (
+            <TouchableOpacity
+              onPress={handleVote}
+              disabled={selectedOptions.length === 0 || isVoting}
+              style={[
+                styles.voteButton,
+                selectedOptions.length > 0 ? styles.voteButtonEnabled : styles.voteButtonDisabled
+              ]}
+            >
+              <Text style={[
+                styles.voteButtonText,
+                selectedOptions.length > 0 ? styles.voteButtonTextEnabled : styles.voteButtonTextDisabled
+              ]}>
+                {isVoting ? 'Voting...' : 'Submit Vote'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+        </>
       )}
     </View>
   );

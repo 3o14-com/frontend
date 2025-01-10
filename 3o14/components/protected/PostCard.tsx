@@ -39,7 +39,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const [favouritesCount, setFavouritesCount] = useState(post.favourites_count || 0);
   const [reblogsCount, setReblogsCount] = useState(post.reblogs_count || 0);
   const { user } = useAuth();
-  console.log('user', user);
 
   const [showModal, setShowModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -452,24 +451,29 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const renderPoll = () => {
     if (!post.poll) return null;
-
     const isOwnPoll = post.account.id === currentUserId;
+    const hasVoted = post.poll.voted || false; // Add this based on your API response
 
     return (
       <PollComponent
         poll={post.poll}
         onVote={handlePollVote}
         isOwnPoll={isOwnPoll}
+        voted={hasVoted}
       />
     );
   };
 
-  // Add this function to handle poll votes
-  const handlePollVote = async (optionIndex: number) => {
+  const handlePollVote = async (choices: number[]) => {
     try {
-      if (!server) return;
-      await ApiService.votePoll(server, post.poll!.id, optionIndex);
-      // You might want to refresh the post data here to show updated poll results
+      if (!server || !post.poll) return;
+
+      // Call API
+      const updatedPoll = await ApiService.votePoll(server, post.poll.id, choices);
+
+      // Update local state with the response from server
+      post.poll = updatedPoll;
+
     } catch (error) {
       console.error('Error voting in poll:', error);
       Alert.alert('Error', 'Failed to submit vote');
@@ -490,7 +494,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       }
 
       const username = post.account.acct;
-      console.log('username', username);
 
       if (user.username === username) {
         router.push(`/protected/profile`);
