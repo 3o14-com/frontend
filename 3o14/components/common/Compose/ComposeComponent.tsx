@@ -43,7 +43,9 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
 }) => {
   const theme = useTheme();
   const { width } = useWindowDimensions();
-  const [content, setContent] = useState(initialContent);
+  const [content, setContent] = useState(() => {
+    return replyToPost ? `@${replyToPost.account.acct} ` : initialContent;
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mediaAttachments, setMediaAttachments] = useState<MediaUploadResponse[]>([]);
   const [contentWarning, setContentWarning] = useState('');
