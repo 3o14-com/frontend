@@ -1,6 +1,6 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
-import type { NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
+import type { Poll, NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
 
 
 export const ApiService = {
@@ -696,5 +696,25 @@ export const ApiService = {
       throw new Error('Failed to dismiss notification');
     }
   },
+
+  async votePoll(server: string, pollId: string, choices: number): Promise<Poll> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const response = await fetch(`https://${server}/api/v1/polls/${pollId}/votes`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ choices: [choices] }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit vote');
+    }
+
+    return response.json();
+  }
 
 };

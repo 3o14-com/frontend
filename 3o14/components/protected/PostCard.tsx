@@ -14,7 +14,7 @@ import { ContentRenderer } from '@/components/common/ContentRenderer';
 import { MediaGrid } from '@/components/common/Media/MediaGrid';
 import { MediaViewer } from '@/components/common/Media/MediaViewer';
 import { useAuth } from '@/hooks/useAuth';
-
+import { PollComponent } from '@/components/common/PollComponent';
 
 LogBox.ignoreLogs([
   'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
@@ -342,17 +342,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       paddingLeft: 50,
       paddingRight: 15,
     },
-    poll: {
-      marginTop: theme.spacing.medium,
-      padding: theme.spacing.small,
-      borderColor: theme.colors.border,
-      borderRadius: theme.borderRadius.small,
-      marginBottom: theme.spacing.small,
-      paddingLeft: 50,
-    },
-    pollOption: {
-      marginBottom: theme.spacing.small,
-      color: theme.colors.text,
+    pollContainer: {
+      paddingLeft: 40,
+      paddingRight: 10,
     },
     counter: {
       marginTop: theme.spacing.medium,
@@ -458,15 +450,31 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     );
   };
 
-  const renderPoll = () => (
-    <View style={styles.poll}>
-      {post.poll?.options.map((option, index) => (
-        <Text key={index} style={styles.pollOption}>
-          {option.title} ({option.votes_count} votes)
-        </Text>
-      ))}
-    </View>
-  );
+  const renderPoll = () => {
+    if (!post.poll) return null;
+
+    const isOwnPoll = post.account.id === currentUserId;
+
+    return (
+      <PollComponent
+        poll={post.poll}
+        onVote={handlePollVote}
+        isOwnPoll={isOwnPoll}
+      />
+    );
+  };
+
+  // Add this function to handle poll votes
+  const handlePollVote = async (optionIndex: number) => {
+    try {
+      if (!server) return;
+      await ApiService.votePoll(server, post.poll!.id, optionIndex);
+      // You might want to refresh the post data here to show updated poll results
+    } catch (error) {
+      console.error('Error voting in poll:', error);
+      Alert.alert('Error', 'Failed to submit vote');
+    }
+  };
 
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
 
@@ -578,7 +586,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
           {post.media_attachments.length > 0 && renderMedia()}
         </View>
 
-        {post.poll && renderPoll()}
+        <View style={styles.pollContainer}>
+          {post.poll && renderPoll()}
+        </View>
 
         <View style={styles.actions}>
           <View style={styles.leftActions}>

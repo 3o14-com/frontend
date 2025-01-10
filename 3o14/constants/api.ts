@@ -25,4 +25,5 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: '/api/v1/notifications',
   CLEAR_NOTIFICATIONS: '/api/v1/notifications/clear',
   DISMISS_NOTIFICATION: '/api/v1/notifications/{id}/dismiss',
+  VOTE_POLL: '/api/v1/polls/{id}/votes',
 };
