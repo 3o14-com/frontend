@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import { StorageService } from '@/services/storage';
 
@@ -7,8 +7,13 @@ export const useAuthState = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const segments = useSegments();
+  const isCheckingAuth = useRef(false);
 
   const checkAuth = async () => {
+    // Prevent multiple simultaneous checks
+    if (isCheckingAuth.current) return;
+    isCheckingAuth.current = true;
+
     try {
       setIsLoading(true);
       const [accessToken, server] = await Promise.all([
@@ -20,30 +25,47 @@ export const useAuthState = () => {
 
       if (accessToken && server) {
         setIsAuthenticated(true);
-        // Only navigate if we're not already on the home page
+        // Add a small delay before navigation
         if (!currentSegments.some(segment => segment === 'protected')) {
+          await new Promise(resolve => setTimeout(resolve, 100));
           router.replace('/protected');
         }
       } else {
         setIsAuthenticated(false);
-        // Only navigate if we're not already on the index page
         if (currentSegments.length > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
           router.replace('/');
         }
       }
     } catch (error) {
+      console.error('Auth check error:',
+        error instanceof Error ? error.message : String(error)
+      );
       setIsAuthenticated(false);
-      // Only navigate if we're not already on the index page
       if ([...segments].length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
         router.replace('/');
       }
     } finally {
       setIsLoading(false);
+      isCheckingAuth.current = false;
     }
   };
 
   useEffect(() => {
-    checkAuth();
+    let mounted = true;
+
+    const runAuthCheck = async () => {
+      if (mounted) {
+        await checkAuth();
+      }
+    };
+
+    runAuthCheck();
+
+    return () => {
+      mounted = false;
+    };
   }, [segments.join('/')]);
 
   return { isLoading, isAuthenticated, checkAuth };

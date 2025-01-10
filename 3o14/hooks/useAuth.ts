@@ -109,7 +109,7 @@ export const useAuth = () => {
     });
 
     if (!tokenData.access_token) {
-      throw new Error('Failed to retrieve access token.');
+      console.log('Failed to retrieve access token.');
     }
 
     await StorageService.set('accessToken', tokenData.access_token);
