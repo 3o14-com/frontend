@@ -651,10 +651,9 @@ export const ApiService = {
     }
 
     const data = await response.json();
-    console.log('Raw notifications response:', data); // Debug log
 
     return {
-      notifications: Array.isArray(data) ? data : [], // Ensure we always return an array
+      notifications: Array.isArray(data) ? data : [],
       max_id: data.length > 0 ? data[data.length - 1].id : undefined
     };
   },

@@ -24,6 +24,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ContentRenderer } from '@/components/common/ContentRenderer';
 import { defaultSystemFonts } from 'react-native-render-html';
 import { Ionicons } from '@expo/vector-icons';
+import Confirm from '@/components/common/Confirm';
 
 
 interface EditableProfile {
@@ -47,6 +48,7 @@ export default function ProfileScreen() {
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
   const { width } = useWindowDimensions();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -89,11 +91,9 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: "images" as const,
       allowsEditing: true,
-      aspect: type === 'avatar' ? [1, 1] : [16, 9],
-      quality: 0.8,
-      base64: true,
+      quality: 1,
     });
 
     if (!result.canceled && result.assets[0]) {
@@ -505,9 +505,31 @@ export default function ProfileScreen() {
               >
                 <Ionicons name="create-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity onPress={() => setShowLogoutConfirm(true)}>
+                  <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
+                </TouchableOpacity>
+
+                <Confirm
+                  visible={showLogoutConfirm}
+                  message="Are you sure you want to logout?"
+                  extraMessage="You'll need to sign in again to access your account."
+                  options={[
+                    {
+                      text: 'Cancel',
+                      onPress: () => setShowLogoutConfirm(false),
+                      icon: 'close-outline'
+                    },
+                    {
+                      text: 'Logout',
+                      onPress: handleLogout,
+                      destructive: true,
+                      icon: 'log-out-outline'
+                    },
+                  ]}
+                  onClose={() => setShowLogoutConfirm(false)}
+                />
+              </>
             </View>
           ),
           headerLeft: () => (

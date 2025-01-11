@@ -1,21 +1,27 @@
 import React from 'react';
 import { Modal, Platform, Pressable, Text, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { Ionicons } from '@expo/vector-icons';
+
+// Define the type for Ionicons names
+type IconNames = keyof typeof Ionicons.glyphMap;
 
 type Option = {
-  text: string | null;
+  text: string;
   onPress: () => void;
-  style?: object;
+  icon?: IconNames;
+  destructive?: boolean;
 };
 
 type ConfirmProps = {
   visible: boolean;
-  message: string | null;
+  message: string;
+  extraMessage?: string;
   options: Option[];
   onClose: () => void;
 };
 
-const Confirm: React.FC<ConfirmProps> = ({ visible, message, options, onClose }) => {
+const Confirm: React.FC<ConfirmProps> = ({ visible, message, extraMessage, options, onClose }) => {
   const theme = useTheme();
 
   const styles = StyleSheet.create({
@@ -30,7 +36,7 @@ const Confirm: React.FC<ConfirmProps> = ({ visible, message, options, onClose })
       borderRadius: 12,
       padding: theme.spacing.small,
       width: Platform.OS === 'web' ? 300 : '80%',
-      maxWidth: 600,
+      maxWidth: 400,
       ...Platform.select({
         web: {
           border: `1px solid ${theme.colors.border}`,
@@ -45,25 +51,47 @@ const Confirm: React.FC<ConfirmProps> = ({ visible, message, options, onClose })
         },
       }),
     },
+    messageContainer: {
+      marginBottom: theme.spacing.medium,
+      paddingHorizontal: theme.spacing.small,
+    },
     message: {
       fontSize: 16,
-      marginBottom: 20,
+      color: theme.colors.text,
       textAlign: 'center',
     },
-    optionsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-evenly',
+    extraMessage: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: 'center',
+      marginTop: theme.spacing.small,
     },
-    optionButton: {
-      paddingVertical: 10,
-      paddingHorizontal: 20,
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: theme.spacing.small,
+      paddingHorizontal: theme.spacing.small,
       borderRadius: 8,
     },
     optionText: {
       fontSize: 14,
-      textAlign: 'center',
+      marginLeft: theme.spacing.medium,
+      flex: 1,
+    },
+    destructiveOption: {
+      backgroundColor: `${theme.colors.error}10`,
+    },
+    destructiveText: {
+      color: theme.colors.error,
+    },
+    normalText: {
+      color: theme.colors.text,
     },
   });
+
+  const getIconName = (option: Option): IconNames => {
+    return option.icon || (option.destructive ? 'trash-outline' : 'checkmark-outline') as IconNames;
+  };
 
   return (
     <Modal
@@ -73,16 +101,42 @@ const Confirm: React.FC<ConfirmProps> = ({ visible, message, options, onClose })
       onRequestClose={onClose}
     >
       <Pressable style={styles.modalOverlay} onPress={onClose}>
-        <Pressable style={[styles.modalContent, { backgroundColor: theme.colors.background }]} onPress={(e) => e.stopPropagation()}>
-          <Text style={[styles.message, { color: theme.colors.text }]}>{message || "No message provided"}</Text>
-          <View style={styles.optionsContainer}>
+        <Pressable
+          style={[styles.modalContent]}
+          onPress={(e) => e.stopPropagation()}
+        >
+          <View style={styles.messageContainer}>
+            <Text style={styles.message}>{message}</Text>
+            {extraMessage && (
+              <Text style={styles.extraMessage}>{extraMessage}</Text>
+            )}
+          </View>
+          <View>
             {options.map((option, index) => (
               <Pressable
                 key={index}
-                style={[styles.optionButton, option.style, { backgroundColor: theme.colors.primary }]}
-                onPress={option.onPress}
+                style={[
+                  styles.option,
+                  option.destructive && styles.destructiveOption,
+                ]}
+                onPress={() => {
+                  option.onPress();
+                  onClose();
+                }}
               >
-                <Text style={[styles.optionText, { color: theme.colors.text }]}>{option.text || "Unnamed option"}</Text>
+                <Ionicons
+                  name={getIconName(option)}
+                  size={24}
+                  color={option.destructive ? theme.colors.error : theme.colors.text}
+                />
+                <Text
+                  style={[
+                    styles.optionText,
+                    option.destructive ? styles.destructiveText : styles.normalText,
+                  ]}
+                >
+                  {option.text}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -91,6 +145,5 @@ const Confirm: React.FC<ConfirmProps> = ({ visible, message, options, onClose })
     </Modal>
   );
 };
-
 
 export default Confirm;

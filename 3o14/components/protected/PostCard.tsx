@@ -218,17 +218,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
                 {/* Confirm Modal */}
                 <Confirm
                   visible={showConfirm}
-                  message="Are you sure you want to delete this post?"
+                  message="Delete this post?"
+                  extraMessage="Changes will show up after you refresh."
                   options={[
                     {
                       text: 'Cancel',
-                      onPress: () => setShowConfirm(false),
-                      style: { backgroundColor: theme.colors.background },
+                      onPress: () => { setShowConfirm(false); setShowModal(false) },
+                      icon: 'close-outline'
                     },
                     {
                       text: 'Delete',
                       onPress: deletePost,
-                      style: { backgroundColor: theme.colors.error },
+                      destructive: true,
+                      icon: 'trash-outline'
                     },
                   ]}
                   onClose={() => setShowConfirm(false)}
@@ -631,7 +633,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
           {renderModal()}
         </View>
 
-        <Text style={styles.date}>Posted on {formattedDate}</Text>
+        <Text style={styles.date}>{formattedDate}</Text>
       </>
     );
   };

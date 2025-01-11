@@ -192,7 +192,7 @@ export function Timeline({ type }: TimelineProps) {
     },
     newPostsBanner: {
       position: 'absolute',
-      top: 10,
+      bottom: 20,
       alignSelf: 'center',
       width: 'auto',
       height: 44,
@@ -224,6 +224,7 @@ export function Timeline({ type }: TimelineProps) {
           onPress={handleNewPostsPress}
           activeOpacity={0.8}
         >
+          <Ionicons name="arrow-up" size={15} color="#fff" />
           <Text style={styles.newPostsText}>
             New Posts
           </Text>
