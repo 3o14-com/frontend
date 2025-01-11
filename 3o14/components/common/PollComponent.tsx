@@ -199,9 +199,18 @@ export const PollComponent: React.FC<PollComponentProps> = ({
       {isReadOnly && (
         <View style={styles.optionsContainer}>
           {poll?.options.map((option, index) => {
-            const percentage = totalVotes > 0
-              ? Math.round((option.votes_count / totalVotes) * 100)
-              : 0;
+
+            let percentage: number;
+            if (!isMultipleChoice) {
+              percentage = totalVotes > 0
+                ? Math.round((option.votes_count / totalVotes) * 100)
+                : 0;
+            } else {
+              const maxVotes = Math.max(...poll.options.map(option => option.votes_count));
+              percentage = maxVotes > 0
+                ? Math.round((option.votes_count / maxVotes) * 100)
+                : 0;
+            }
 
             return (
               <View
