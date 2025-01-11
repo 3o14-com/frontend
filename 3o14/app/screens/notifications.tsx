@@ -234,11 +234,6 @@ export default function NotificationsScreen() {
           }
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isFetchingMore ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : null
-          }
         />
       )}
     </>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Text, View, FlatList, StyleSheet, StatusBar, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { PostCard } from '@/components/protected/PostCard';
 import { Loading } from '@/components/common/Loading';
 import { useTheme } from '@/hooks/useTheme';
@@ -85,7 +86,7 @@ export function Timeline({ type }: TimelineProps) {
         : ApiService.getLocalTimeline;
 
       const newData = await fetchFunction(server, undefined);
-      
+
       // Filter out posts we've already seen
       const trulyNewPosts = newData.filter(post => !seenPostIds.current.has(post.id));
 
@@ -104,6 +105,63 @@ export function Timeline({ type }: TimelineProps) {
       console.error('New posts check failed:', error);
     }
   }, [type]);
+
+  // Add focus effect to check for updates when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const updateOnFocus = async () => {
+        try {
+          const server = await StorageService.get('server');
+          if (!server) return;
+
+          const fetchFunction = type === 'home'
+            ? ApiService.getHomeTimeline
+            : ApiService.getLocalTimeline;
+
+          const newData = await fetchFunction(server, undefined);
+          const currentScrollPosition = lastOffset.current;
+
+          // Update posts while maintaining scroll position
+          setPosts(prevPosts => {
+            const currentPosts = new Map(prevPosts.map(post => [post.id, post]));
+
+            // Update existing posts and add new ones
+            newData.forEach(post => {
+              if (!currentPosts.has(post.id)) {
+                currentPosts.set(post.id, post);
+              }
+            });
+
+            // Remove deleted posts
+            const newDataIds = new Set(newData.map(post => post.id));
+            Array.from(currentPosts.keys()).forEach(id => {
+              if (!newDataIds.has(id)) {
+                currentPosts.delete(id);
+              }
+            });
+
+            const updatedPosts = Array.from(currentPosts.values());
+
+            // Restore scroll position after update
+            if (currentScrollPosition > 0) {
+              requestAnimationFrame(() => {
+                flatListRef.current?.scrollToOffset({
+                  offset: currentScrollPosition,
+                  animated: false
+                });
+              });
+            }
+
+            return updatedPosts;
+          });
+        } catch (error) {
+          console.error('Focus update failed:', error);
+        }
+      };
+
+      updateOnFocus();
+    }, [type])
+  );
 
   useEffect(() => {
     pollingInterval.current = setInterval(checkNewPosts, 30000);
@@ -192,11 +250,14 @@ export function Timeline({ type }: TimelineProps) {
     },
     newPostsBanner: {
       position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
+      top: 10,
+      alignSelf: 'center',
+      width: 'auto',
+      height: 44,
+      justifyContent: 'center',
+      borderRadius: 22,
       backgroundColor: theme.colors.primary,
-      padding: 12,
+      paddingHorizontal: 16,
       alignItems: 'center',
       zIndex: 1000,
     },
