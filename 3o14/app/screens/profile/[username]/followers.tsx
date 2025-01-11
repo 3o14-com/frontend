@@ -215,6 +215,7 @@ export default function FollowersScreen() {
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
             colors={[theme.colors.primary]}
+            progressBackgroundColor={theme.colors.background}
           />
         }
         onEndReached={handleLoadMore}

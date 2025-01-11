@@ -389,6 +389,7 @@ export default function ProfileScreen() {
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
               colors={[theme.colors.primary]}
+              progressBackgroundColor={theme.colors.background}
             />
           }
           onEndReached={handleLoadMore}

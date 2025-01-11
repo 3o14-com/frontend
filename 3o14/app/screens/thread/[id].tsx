@@ -190,6 +190,7 @@ export default function ThreadScreen() {
               refreshing={isRefreshing}
               onRefresh={handleRefresh}
               colors={[theme.colors.primary]}
+              progressBackgroundColor={theme.colors.background}
             />
           }
         >
