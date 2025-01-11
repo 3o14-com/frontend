@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { StatusBar, ActivityIndicator, View, StyleSheet } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 
 export const Loading: React.FC = () => {
@@ -16,6 +16,10 @@ export const Loading: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar
+        barStyle={theme.colors.background === '#ffffff' ? 'dark-content' : 'light-content'}
+        backgroundColor={theme.colors.background}
+      />
       <ActivityIndicator size="large" color={theme.colors.primary} />
     </View>
   );

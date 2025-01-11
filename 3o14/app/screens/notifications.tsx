@@ -91,6 +91,15 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleProfileNavigation = (acct: string | unknown) => {
+    if (typeof acct === 'string') {
+      router.push(`/screens/profile/${acct}`);
+    } else {
+      console.error("Account ID is not a string:", acct);
+    }
+  };
+
+
   const renderNotificationContent = ({ item }: { item: Notification }) => {
     const getNotificationIcon = () => {
       switch (item.type) {
@@ -113,29 +122,33 @@ export default function NotificationsScreen() {
 
     return (
       <View style={styles.notificationItem}>
-        <View style={styles.notificationHeader}>
-          <Ionicons
-            name={getNotificationIcon()}
-            size={24}
-            color={theme.colors.primary}
-            style={styles.notificationIcon}
-          />
-          <Text style={styles.notificationText}>
-            <Text style={styles.username}>{item.account.display_name}</Text>
-            {' '}
-            {item.type === 'follow'
-              ? 'followed you'
-              : item.type === 'favourite'
-                ? 'favorited your post'
-                : item.type === 'reblog'
-                  ? 'boosted your post'
-                  : item.type === 'mention'
-                    ? 'mentioned you'
-                    : item.type === 'poll'
-                      ? 'poll ended'
-                      : 'requested to follow you'}
-          </Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => handleProfileNavigation(item.account.acct)}
+        >
+          <View style={styles.notificationHeader}>
+            <Ionicons
+              name={getNotificationIcon()}
+              size={24}
+              color={theme.colors.primary}
+              style={styles.notificationIcon}
+            />
+            <Text style={styles.notificationText}>
+              <Text style={styles.username}>{item.account.display_name}</Text>
+              {' '}
+              {item.type === 'follow'
+                ? 'followed you'
+                : item.type === 'favourite'
+                  ? 'favorited your post'
+                  : item.type === 'reblog'
+                    ? 'boosted your post'
+                    : item.type === 'mention'
+                      ? 'mentioned you'
+                      : item.type === 'poll'
+                        ? 'poll ended'
+                        : 'requested to follow you'}
+            </Text>
+          </View>
+        </TouchableOpacity>
         {item.status && <PostCard post={item.status} />}
       </View>
     );
