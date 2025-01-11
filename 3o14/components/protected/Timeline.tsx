@@ -87,8 +87,9 @@ export function Timeline({ type }: TimelineProps) {
     lastOffset.current = currentOffset;
   };
 
-  const scrollToTop = () => {
+  const scrollToTopAndRefresh = () => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+    handleRefresh();
   };
 
   const styles = StyleSheet.create({
@@ -156,7 +157,7 @@ export function Timeline({ type }: TimelineProps) {
       {showScrollTop && (
         <TouchableOpacity
           style={styles.scrollTopButton}
-          onPress={scrollToTop}
+          onPress={scrollToTopAndRefresh}
           activeOpacity={0.8}
         >
           <Ionicons name="arrow-up" size={24} color="#fff" />
