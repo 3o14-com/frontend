@@ -249,6 +249,7 @@ export function Timeline({ type }: TimelineProps) {
             onRefresh={handleRefresh}
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
+            progressBackgroundColor={theme.colors.background}
           />
         }
         ListFooterComponent={isFetchingMore ? <Loading /> : null}

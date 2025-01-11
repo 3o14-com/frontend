@@ -543,14 +543,26 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     });
   };
 
+  const handleProfileNavigation = (acct: string | unknown) => {
+    if (typeof acct === 'string') {
+      router.push(`/screens/profile/${acct}`);
+    } else {
+      console.error("Account ID is not a string:", acct);
+    }
+  };
+
   const renderContent = () => {
     if (post.reblog && !isBoost) {
       return (
         <>
-          <View style={styles.boostInfo}>
-            <Ionicons name="repeat" size={16} color={theme.colors.text} />
-            <Text style={styles.boostText}>{post.account.display_name} boosted</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => handleProfileNavigation(post.account.acct)}
+          >
+            <View style={styles.boostInfo}>
+              <Ionicons name="repeat" size={16} color={theme.colors.text} />
+              <Text style={styles.boostText}>{post.account.display_name} boosted</Text>
+            </View>
+          </TouchableOpacity>
           <PostCard post={post.reblog} isBoost={true} onLike={onLike} onReblog={onReblog} />
         </>
       );
