@@ -22,6 +22,8 @@ import type { ComposeProps, Visibility } from './types';
 import type { CreatePostParams, MediaUploadResponse } from '@/types/api';
 import { StorageService } from '@/services/storage';
 import { useLocalSearchParams } from 'expo-router';
+import { MentionSelector } from './MentionSelector';
+import type { Account } from '@/types/api';
 
 
 const VISIBILITY_OPTIONS: Visibility[] = [
@@ -43,6 +45,7 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
 }) => {
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const [content, setContent] = useState(() => {
     return replyToPost ? `@${replyToPost.account.acct} ` : initialContent;
   });
@@ -53,6 +56,7 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
   const [visibility, setVisibility] = useState<Visibility>(VISIBILITY_OPTIONS[0]);
   const [isSelectingVisibility, setIsSelectingVisibility] = useState(false);
   const params = useLocalSearchParams() as unknown as ComposeRouteParams;
+  const [isSelectingMention, setIsSelectingMention] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -67,7 +71,8 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
       color: theme.colors.text,
       fontSize: 16,
       textAlignVertical: 'top',
-      minHeight: 150,
+      maxHeight: Platform.OS === 'web' ? height * 0.15 : height * 0.20,
+      minHeight: Platform.OS === 'web' ? height * 0.15 : height * 0.20,
       borderWidth: 0,
       padding: theme.spacing.medium,
     },
@@ -81,8 +86,8 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
       marginHorizontal: theme.spacing.medium,
     },
     previewBox: {
-      maxHeight: 400,
       borderTopWidth: 1,
+      maxHeight: Platform.OS === 'web' ? height * 0.66 : height * 0.25,
       borderColor: theme.colors.border,
       padding: theme.spacing.medium,
       marginTop: theme.spacing.medium,
@@ -121,6 +126,21 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
         Alert.alert('Error', 'Failed to upload media');
       }
     }
+  };
+
+  const handleMentionSelect = (account: Account) => {
+    const mention = `@${account.acct} `;
+    const cursorPosition = (content.match(/\n/g) || []).length;
+
+    const textBeforeCursor = content.slice(0, cursorPosition);
+    const textAfterCursor = content.slice(cursorPosition);
+
+    setContent(
+      textBeforeCursor +
+      (textBeforeCursor && !textBeforeCursor.endsWith(' ') ? ' ' : '') +
+      mention +
+      textAfterCursor
+    );
   };
 
   const handleSubmit = async () => {
@@ -250,6 +270,7 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
         onPickImage={pickImage}
         onToggleContentWarning={() => setShowContentWarning(!showContentWarning)}
         onSelectVisibility={() => setIsSelectingVisibility(true)}
+        onMention={() => setIsSelectingMention(true)}
         onSubmit={handleSubmit}
         showContentWarning={showContentWarning}
         visibility={visibility}
@@ -267,6 +288,13 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
           setVisibility(option);
           setIsSelectingVisibility(false);
         }}
+        theme={theme}
+      />
+
+      <MentionSelector
+        visible={isSelectingMention}
+        onClose={() => setIsSelectingMention(false)}
+        onSelect={handleMentionSelect}
         theme={theme}
       />
     </KeyboardAvoidingView>

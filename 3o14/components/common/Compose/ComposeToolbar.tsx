@@ -8,6 +8,7 @@ export const ComposeToolbar: React.FC<ComposeToolbarProps> = ({
   onToggleContentWarning,
   onSelectVisibility,
   onSubmit,
+  onMention,
   showContentWarning,
   visibility,
   isSubmitting,
@@ -48,6 +49,12 @@ export const ComposeToolbar: React.FC<ComposeToolbarProps> = ({
   return (
     <View style={styles.toolbar}>
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={onMention}
+        >
+          <Ionicons name="at" size={24} color={theme.colors.text} />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconButton}
           onPress={onPickImage}

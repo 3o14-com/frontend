@@ -1,9 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
 import { View, Pressable, StyleSheet, Text, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { StorageService } from '@/services/storage';
 import { useTheme } from '@/hooks/useTheme';
+import Confirm from '@/components/common/Confirm';
 
 type ProtectedPath =
   | '/protected'
@@ -57,7 +58,8 @@ export const navigationItems: NavigationItem[] = [
   },
 ];
 
-const handleLogout = async () => {
+
+const handleLogoutConfirm = async () => {
   try {
     await StorageService.clear();
     router.push('/');
@@ -74,6 +76,7 @@ interface WebNavigationProps {
 
 export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, theme }) => {
   const currentPath = usePathname();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const styles = StyleSheet.create({
     webNavContainer: {
       width: 250,
@@ -160,7 +163,7 @@ export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, them
               opacity: pressed ? 0.8 : 1,
             },
           ]}
-          onPress={handleLogout}
+          onPress={() => setShowLogoutConfirm(true)}
         >
           <Ionicons
             name="log-out-outline"
@@ -172,7 +175,27 @@ export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, them
           </Text>
         </Pressable>
       </View>
-    </View>
+
+      <Confirm
+        visible={showLogoutConfirm}
+        message="Are you sure you want to logout?"
+        extraMessage="You'll need to sign in again to access your account."
+        options={[
+          {
+            text: 'Cancel',
+            onPress: () => setShowLogoutConfirm(false),
+            icon: 'close-outline'
+          },
+          {
+            text: 'Logout',
+            onPress: handleLogoutConfirm,
+            destructive: true,
+            icon: 'log-out-outline'
+          },
+        ]}
+        onClose={() => setShowLogoutConfirm(false)}
+      />
+    </View >
   );
 };
 

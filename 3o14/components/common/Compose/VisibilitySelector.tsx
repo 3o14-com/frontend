@@ -28,11 +28,10 @@ export const VisibilitySelector: React.FC<VisibilitySelectorProps> = ({
     modalContainer: {
       flex: 1,
       justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0)',
     },
     content: {
       backgroundColor: theme.colors.background,
-      borderTopWidth: 1,
       borderTopColor: theme.colors.border,
       borderTopLeftRadius: theme.borderRadius.large,
       borderTopRightRadius: theme.borderRadius.large,
@@ -42,7 +41,7 @@ export const VisibilitySelector: React.FC<VisibilitySelectorProps> = ({
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingBottom: theme.spacing.medium,
+      padding: theme.spacing.medium,
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
@@ -55,8 +54,6 @@ export const VisibilitySelector: React.FC<VisibilitySelectorProps> = ({
       flexDirection: 'row',
       alignItems: 'center',
       padding: theme.spacing.medium,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
     },
     optionText: {
       marginLeft: theme.spacing.medium,
@@ -84,7 +81,7 @@ export const VisibilitySelector: React.FC<VisibilitySelectorProps> = ({
               onPress={() => onSelect(selectedVisibility)}
             >
               <Ionicons
-                name="close"
+                name="arrow-down"
                 size={24}
                 color={theme.colors.text}
               />

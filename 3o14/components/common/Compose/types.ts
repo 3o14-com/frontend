@@ -14,6 +14,7 @@ export interface ComposeToolbarProps {
   onToggleContentWarning: () => void;
   onSelectVisibility: () => void;
   onSubmit: () => void;
+  onMention: () => void;
   showContentWarning: boolean;
   visibility: Visibility;
   isSubmitting: boolean;
