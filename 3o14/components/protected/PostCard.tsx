@@ -29,6 +29,7 @@ interface PostCardProps {
   isBoost?: boolean;
 }
 
+
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
   const router = useRouter();
   const theme = useTheme();
@@ -332,13 +333,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       fontStyle: 'italic',
       color: theme.colors.textSecondary,
     },
-    date: {
-      color: theme.colors.textSecondary,
-      fontSize: 12,
-      marginTop: theme.spacing.medium,
-      textAlign: "right",
-      paddingRight: 15,
-    },
     media: {
       paddingLeft: 50,
       paddingRight: 15,
@@ -383,10 +377,27 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     dateContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      flex: 1,
+      justifyContent: 'flex-end',
+      marginTop: theme.spacing.medium,
+      paddingRight: 15,
     },
-    visibilityIcon: {
+    visibilityContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    visibilityText: {
+      color: theme.colors.textSecondary,
+      fontSize: 12,
       marginRight: theme.spacing.small,
+    },
+    dot: {
+      color: theme.colors.textSecondary,
+      fontSize: 12,
+      marginHorizontal: theme.spacing.small,
+    },
+    date: {
+      color: theme.colors.textSecondary,
+      fontSize: 12,
     },
     mediaContainer: {
       marginTop: theme.spacing.medium,
@@ -428,6 +439,30 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       color: theme.colors.text,
       marginBottom: theme.spacing.small,
     },
+  };
+
+  type IconName = keyof typeof Ionicons.glyphMap;
+
+  const getVisibilityInfo = (visibility: string): { icon: IconName } => {
+    switch (visibility) {
+      case 'direct':
+        return {
+          icon: 'mail' as IconName,
+        };
+      case 'private':
+        return {
+          icon: 'lock-closed' as IconName,
+        };
+      case 'unlisted':
+        return {
+          icon: 'eye-off' as IconName,
+        };
+      case 'public':
+      default:
+        return {
+          icon: 'globe' as IconName,
+        };
+    }
   };
 
   const renderMedia = () => {
@@ -613,10 +648,18 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
               <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={20} color={isLiked ? theme.colors.error : theme.colors.text} />
               <Text style={[styles.actionText, { color: theme.colors.text }]}>{favouritesCount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
-              <Ionicons name={isReblogged ? 'repeat' : 'repeat-outline'} size={20} color={isReblogged ? theme.colors.success : theme.colors.text} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>{reblogsCount}</Text>
-            </TouchableOpacity>
+            {post.visibility === 'public' && (
+              <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
+                <Ionicons
+                  name={isReblogged ? 'repeat' : 'repeat-outline'}
+                  size={20}
+                  color={isReblogged ? theme.colors.success : theme.colors.text}
+                />
+                <Text style={[styles.actionText, { color: theme.colors.text }]}>
+                  {reblogsCount}
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.actionButton} onPress={handleReply}>
               <Ionicons name={'return-down-back-outline'} size={20} color={theme.colors.text} />
               <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
@@ -633,7 +676,21 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
           {renderModal()}
         </View>
 
-        <Text style={styles.date}>{formattedDate}</Text>
+        <View style={styles.dateContainer}>
+          <View style={styles.visibilityContainer}>
+            {post.visibility && (
+              <>
+                <Ionicons
+                  name={getVisibilityInfo(post.visibility).icon}
+                  size={12}
+                  color={theme.colors.textSecondary}
+                />
+                <Text style={styles.dot}>•</Text>
+              </>
+            )}
+          </View>
+          <Text style={styles.date}>{formattedDate}</Text>
+        </View>
       </>
     );
   };

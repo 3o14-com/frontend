@@ -86,6 +86,7 @@ export interface Post {
   reblog?: Post;
   favourited?: boolean;
   reblogged?: boolean;
+  visibility: 'public' | 'private' | 'unlisted' | 'direct';
 }
 
 export interface Visibility {
