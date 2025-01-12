@@ -14,115 +14,153 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
   onMediaPress,
 }) => {
   const theme = useTheme();
-  const SPACING = 4; // Increased spacing for better aesthetics
+  const imageCount = Math.min(mediaAttachments.length, 4);
 
-  const getItemStyle = (count: number, index: number) => {
-    if (count === 1) {
-      return styles.singleMedia;
-    } else if (count === 2) {
-      return styles.twoMedia;
-    } else if (count === 3) {
-      return index === 0 ? styles.threeMediaFirst : styles.threeMedia;
-    } else {
-      return styles.fourMedia;
+  const renderMediaIcon = (type: string) => {
+    const isVideo = type === 'video' || type === 'gifv';
+    const isAudio = type === 'audio';
+
+    if (isVideo) {
+      return (
+        <View style={styles.iconContainer}>
+          <Ionicons name="play-circle" size={32} color="#fff" />
+        </View>
+      );
     }
+
+    if (isAudio) {
+      return (
+        <View style={styles.iconContainer}>
+          <Ionicons name="musical-notes" size={24} color="#fff" />
+        </View>
+      );
+    }
+
+    return null;
   };
 
-  const renderMediaItem = (item: MediaAttachment, index: number) => {
-    const isVideo = item.type === 'video' || item.type === 'gifv';
-    const isAudio = item.type === 'audio';
+  const MediaItem = ({ item, index }: { item: MediaAttachment; index: number }) => {
     const placeholder = theme.colors.border || '#ccc';
 
     return (
       <TouchableOpacity
-        key={item.id}
-        style={[getItemStyle(mediaAttachments.length, index), { margin: SPACING / 2 }]}
+        activeOpacity={0.9}
         onPress={() => onMediaPress(index)}
+        style={[
+          styles.mediaItem,
+          getMediaStyle(imageCount, index),
+          imageCount === 4 && {
+            borderRadius: 12,
+          },
+          imageCount === 3 && {
+            borderRadius: 12,
+          },
+          imageCount === 2 && {
+            borderRadius: 12,
+          },
+        ]}
         accessibilityLabel={`Media item ${index + 1}`}
       >
         <Image
           source={{ uri: item.preview_url || placeholder }}
-          style={styles.mediaPreview}
+          style={styles.image}
           resizeMode="cover"
         />
-        {isVideo && (
-          <View style={styles.playButton}>
-            <Ionicons name="play-circle" size={32} color="#fff" />
-          </View>
-        )}
-        {isAudio && (
-          <View style={styles.audioIcon}>
-            <Ionicons name="musical-notes" size={24} color="#fff" />
-          </View>
-        )}
+        {renderMediaIcon(item.type)}
       </TouchableOpacity>
     );
   };
 
+  const getMediaStyle = (count: number, index: number) => {
+    switch (count) {
+      case 1:
+        return styles.fullWidth;
+      case 2:
+        return styles.halfWidth;
+      case 3:
+      case 4:
+        return index === 0 ? styles.fullWidth : styles.halfWidth;
+      default:
+        return styles.halfWidth;
+    }
+  };
+
+  const getContainerStyle = (count: number) => {
+    switch (count) {
+      case 1:
+        return styles.singleContainer;
+      case 2:
+        return styles.doubleContainer;
+      case 3:
+      case 4:
+        return styles.tripleContainer;
+      default:
+        return styles.tripleContainer;
+    }
+  };
+
   return (
-    <View style={[styles.mediaGrid, { margin: -SPACING / 2 }]}>
-      {mediaAttachments.slice(0, 4).map((item, index) =>
-        renderMediaItem(item, index)
-      )}
+    <View style={[
+      styles.container,
+      getContainerStyle(imageCount),
+      // Remove border radius from container for two-image layout
+      imageCount === 2 && { borderRadius: 0 }
+    ]}>
+      {mediaAttachments.slice(0, 4).map((item, index) => (
+        <MediaItem key={item.id} item={item} index={index} />
+      ))}
     </View>
   );
 };
 
+const SPACING = 4;
+
 const styles = StyleSheet.create({
-  mediaGrid: {
+  container: {
+    width: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
+  },
+  singleContainer: {
+    aspectRatio: 16 / 9,
+  },
+  doubleContainer: {
+    flexDirection: 'row',
+    gap: SPACING,
+    aspectRatio: 16 / 9,
+  },
+  tripleContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignContent: 'space-evenly',
+    gap: SPACING,
   },
-  singleMedia: {
+  mediaItem: {
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+  fullWidth: {
     width: '100%',
     aspectRatio: 16 / 9,
-    borderRadius: 8,
-    borderWidth: 0,
-    overflow: 'hidden',
   },
-  twoMedia: {
-    width: '48%',
-    aspectRatio: 1,
-    borderRadius: 8,
-    borderWidth: 0,
-    overflow: 'hidden',
-  },
-  threeMediaFirst: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 8,
-    borderWidth: 0,
-    overflow: 'hidden',
-  },
-  threeMedia: {
-    width: '48%',
-    aspectRatio: 1,
-    borderRadius: 8,
-    borderWidth: 0,
-    overflow: 'hidden',
-  },
-  fourMedia: {
-    width: '48%',
-    aspectRatio: 1,
-    borderRadius: 8,
-    borderWidth: 0,
-    overflow: 'hidden',
-  },
-  mediaPreview: {
+  halfWidth: {
     flex: 1,
+    minWidth: '49%',
+    aspectRatio: 1,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
     backgroundColor: '#ccc',
   },
-  playButton: {
+  iconContainer: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -16 }, { translateY: -16 }],
-  },
-  audioIcon: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -12 }, { translateY: -12 }],
+    transform: [
+      { translateX: -16 },
+      { translateY: -16 },
+    ],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
