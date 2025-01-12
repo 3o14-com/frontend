@@ -111,10 +111,10 @@ export default function FollowersScreen() {
   };
 
   const navigateToProfile = (account: string | undefined) => {
-    if (user?.username === username) {
-      router.push(`/protected/profile`);
+    if (user?.username === account) {
+      router.replace(`/protected/profile`);
     } else {
-      router.push('/protected');
+      router.replace('/protected');
       router.push(`/screens/profile/${account}`);
     }
   };
