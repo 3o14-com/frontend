@@ -23,7 +23,7 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
     if (isVideo) {
       return (
         <View style={styles.iconContainer}>
-          <Ionicons name="play-circle" size={32} color="#fff" />
+          <Ionicons name="play-circle" size={32} color={String(theme.colors.border)} />
         </View>
       );
     }
@@ -99,6 +99,60 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
     }
   };
 
+  const SPACING = 4;
+
+  const styles = StyleSheet.create({
+    container: {
+      width: '100%',
+      overflow: 'hidden',
+      borderRadius: 12,
+      borderColor: theme.colors.border,
+      borderWidth: 1,
+    },
+    singleContainer: {
+      aspectRatio: 16 / 9,
+    },
+    doubleContainer: {
+      flexDirection: 'row',
+      gap: SPACING,
+      aspectRatio: 16 / 9,
+    },
+    tripleContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: SPACING,
+    },
+    mediaItem: {
+      overflow: 'hidden',
+      backgroundColor: '#f0f0f0',
+    },
+    fullWidth: {
+      width: '100%',
+      aspectRatio: 16 / 9,
+    },
+    halfWidth: {
+      flex: 1,
+      minWidth: '49%',
+      aspectRatio: 1,
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#ccc',
+    },
+    iconContainer: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: [
+        { translateX: -16 },
+        { translateY: -16 },
+      ],
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+
   return (
     <View style={[
       styles.container,
@@ -113,54 +167,3 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
   );
 };
 
-const SPACING = 4;
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    overflow: 'hidden',
-    borderRadius: 12,
-  },
-  singleContainer: {
-    aspectRatio: 16 / 9,
-  },
-  doubleContainer: {
-    flexDirection: 'row',
-    gap: SPACING,
-    aspectRatio: 16 / 9,
-  },
-  tripleContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING,
-  },
-  mediaItem: {
-    overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
-  },
-  fullWidth: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-  },
-  halfWidth: {
-    flex: 1,
-    minWidth: '49%',
-    aspectRatio: 1,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#ccc',
-  },
-  iconContainer: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [
-      { translateX: -16 },
-      { translateY: -16 },
-    ],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

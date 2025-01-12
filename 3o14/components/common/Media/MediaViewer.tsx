@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -9,7 +9,7 @@ import {
   StatusBar,
   TouchableOpacity
 } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { useVideoPlayer, VideoView, VideoPlayer } from 'expo-video';
 import Carousel from 'react-native-reanimated-carousel';
 import { MediaAttachment } from '@/types/api';
 import { runOnJS } from 'react-native-reanimated';
@@ -34,10 +34,11 @@ const MediaImage = memo(({ uri, width, height }: { uri: string; width: number; h
 ));
 
 const MediaVideo = memo(({ uri, width, height, isGifv }: { uri: string; width: number; height: number; isGifv: boolean }) => {
-  const player = useVideoPlayer(uri, player => {
+  const player = useVideoPlayer(uri, useCallback((player: VideoPlayer) => {
     player.loop = isGifv;
     player.play();
-  });
+  }, [isGifv]));
+
   return (
     <VideoView
       style={{
@@ -52,14 +53,16 @@ const MediaVideo = memo(({ uri, width, height, isGifv }: { uri: string; width: n
 });
 
 const MediaAudio = memo(({ uri, previewUri, width }: { uri: string; previewUri: string; width: number }) => {
-  const player = useVideoPlayer(uri, player => {
+  const player = useVideoPlayer(uri, useCallback((player: VideoPlayer) => {
     player.loop = false;
-  });
+  }, []));
+
+  const audioStyle = Platform.OS === 'web' ? { width: width * 0.6 } : { width: width * 0.8 };
 
   return (
     <View style={styles.audioContainer}>
       <VideoView
-        style={{ width: Platform.OS === 'web' ? width * 0.6 : width * 0.8 }}
+        style={audioStyle}
         player={player}
         allowsFullscreen={false}
       />
@@ -71,7 +74,38 @@ const MediaAudio = memo(({ uri, previewUri, width }: { uri: string; previewUri: 
   );
 });
 
-export const MediaViewer: React.FC<MediaViewerProps> = ({
+const CarouselRenderItem = memo(({ item, mediaWidth, mediaHeight }: {
+  item: MediaAttachment;
+  mediaWidth: number;
+  mediaHeight: number;
+}) => (
+  <View style={styles.mediaWrapper}>
+    <View style={styles.mediaContainer}>
+      {item.type === 'video' || item.type === 'gifv' ? (
+        <MediaVideo
+          uri={item.url}
+          width={mediaWidth}
+          height={mediaHeight}
+          isGifv={item.type === 'gifv'}
+        />
+      ) : item.type === 'audio' ? (
+        <MediaAudio
+          uri={item.url}
+          previewUri={item.preview_url}
+          width={mediaWidth}
+        />
+      ) : (
+        <MediaImage
+          uri={item.url}
+          width={mediaWidth}
+          height={mediaHeight}
+        />
+      )}
+    </View>
+  </View>
+));
+
+export const MediaViewer: React.FC<MediaViewerProps> = memo(({
   visible,
   mediaItems,
   initialIndex,
@@ -91,36 +125,19 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   const mediaWidth = Platform.OS === 'web' ? Math.min(width * 0.8, 1200) : width;
   const mediaHeight = Platform.OS === 'web' ? height * 0.8 : height;
 
-  const renderMediaItem = ({ item }: { item: MediaAttachment }) => (
-    <View style={styles.mediaWrapper}>
-      <View style={styles.mediaContainer}>
-        {item.type === 'video' || item.type === 'gifv' ? (
-          <MediaVideo
-            uri={item.url}
-            width={mediaWidth}
-            height={mediaHeight}
-            isGifv={item.type === 'gifv'}
-          />
-        ) : item.type === 'audio' ? (
-          <MediaAudio
-            uri={item.url}
-            previewUri={item.preview_url}
-            width={mediaWidth}
-          />
-        ) : (
-          <MediaImage
-            uri={item.url}
-            width={mediaWidth}
-            height={mediaHeight}
-          />
-        )}
-      </View>
-    </View>
-  );
+  const renderMediaItem = useCallback(({ item }: { item: MediaAttachment }) => (
+    <CarouselRenderItem
+      item={item}
+      mediaWidth={mediaWidth}
+      mediaHeight={mediaHeight}
+    />
+  ), [mediaWidth, mediaHeight]);
 
-  const handleSnapToItem = (index: number) => {
+  const handleSnapToItem = useCallback((index: number) => {
     runOnJS(setCurrentIndex)(index);
-  };
+  }, []);
+
+  const modalStyle = [styles.modalContainer, { backgroundColor: 'black' }];
 
   return (
     <Modal
@@ -130,10 +147,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
       onRequestClose={onClose}
       statusBarTranslucent={Platform.OS !== 'web'}
     >
-      <View style={[
-        styles.modalContainer,
-        { backgroundColor: 'black' }
-      ]}>
+      <View style={modalStyle}>
         {Platform.OS === 'web' && (
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Ionicons name="close-circle-outline" size={30} color="#fff" />
@@ -153,11 +167,12 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
           panGestureHandlerProps={{
             activeOffsetX: [-10, 10],
           }}
+          windowSize={3}
         />
       </View>
     </Modal>
   );
-};
+});
 
 const styles = StyleSheet.create({
   modalContainer: {
