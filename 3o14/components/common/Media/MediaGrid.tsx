@@ -9,6 +9,45 @@ interface MediaGridProps {
   onMediaPress: (index: number) => void;
 }
 
+const renderMediaIcon = (type: string) => {
+  const isVideo = type === 'video' || type === 'gifv';
+  const isAudio = type === 'audio';
+  const theme = useTheme();
+
+
+  const styles = StyleSheet.create({
+    iconContainer: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: [
+        { translateX: -16 },
+        { translateY: -16 },
+      ],
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+
+  if (isVideo) {
+    return (
+      <View style={styles.iconContainer}>
+        <Ionicons name="play-circle" size={32} color={String(theme.colors.border)} />
+      </View>
+    );
+  }
+
+  if (isAudio) {
+    return (
+      <View style={styles.iconContainer}>
+        <Ionicons name="musical-notes" size={24} color="#fff" />
+      </View>
+    );
+  }
+
+  return null;
+};
+
 export const MediaGrid: React.FC<MediaGridProps> = ({
   mediaAttachments,
   onMediaPress,
@@ -16,28 +55,6 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
   const theme = useTheme();
   const imageCount = Math.min(mediaAttachments.length, 4);
 
-  const renderMediaIcon = (type: string) => {
-    const isVideo = type === 'video' || type === 'gifv';
-    const isAudio = type === 'audio';
-
-    if (isVideo) {
-      return (
-        <View style={styles.iconContainer}>
-          <Ionicons name="play-circle" size={32} color={String(theme.colors.border)} />
-        </View>
-      );
-    }
-
-    if (isAudio) {
-      return (
-        <View style={styles.iconContainer}>
-          <Ionicons name="musical-notes" size={24} color="#fff" />
-        </View>
-      );
-    }
-
-    return null;
-  };
 
   const MediaItem = ({ item, index }: { item: MediaAttachment; index: number }) => {
     const placeholder = theme.colors.border || '#ccc';
@@ -137,17 +154,6 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
       width: '100%',
       height: '100%',
       backgroundColor: '#ccc',
-    },
-    iconContainer: {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: [
-        { translateX: -16 },
-        { translateY: -16 },
-      ],
-      alignItems: 'center',
-      justifyContent: 'center',
     },
   });
 
