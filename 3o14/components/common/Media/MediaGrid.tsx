@@ -106,8 +106,6 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
       width: '100%',
       overflow: 'hidden',
       borderRadius: 12,
-      borderColor: theme.colors.border,
-      borderWidth: 1,
     },
     singleContainer: {
       aspectRatio: 16 / 9,
