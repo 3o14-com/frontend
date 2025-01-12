@@ -16,6 +16,7 @@ import { StorageService } from '@/services/storage';
 import { Account } from '@/types/api';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function FollowingScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
@@ -29,6 +30,7 @@ export default function FollowingScreen() {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [server, setServer] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { user } = useAuth();
 
   // Function to process following accounts one by one
   const processFollowing = useCallback(async (accounts: Account[]) => {
@@ -108,7 +110,12 @@ export default function FollowingScreen() {
   };
 
   const navigateToProfile = (account: string | undefined) => {
-    router.push(`/screens/profile/${account}`);
+    if (user?.username === username) {
+      router.push(`/protected/profile`);
+    } else {
+      router.push('/protected');
+      router.push(`/screens/profile/${account}`);
+    }
   };
 
   const openWebView = useCallback(() => {
