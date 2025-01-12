@@ -9,7 +9,6 @@ import {
   Text,
   Image,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ApiService } from '@/services/api';
@@ -111,7 +110,6 @@ export const MentionSelector: React.FC<MentionSelectorProps> = ({
       setResults(accounts);
     } catch (error) {
       console.error('Search error:', error);
-      Alert.alert('Error', 'Failed to search accounts');
     } finally {
       setIsLoading(false);
     }
