@@ -1,12 +1,13 @@
 // @ts-ignore
 import MathJax from 'react-native-mathjax';
+import React, { memo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { mmlOptions } from './MathJaxConfig';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import type { ContentRendererProps } from './types';
 
-const containsLatexDelimiters = (content: string): boolean => {
+const containsLatexDelimiters = (content: string = ''): boolean => {
   // Check for display math \[ \] or inline math \( \) 
   // Using regex with 's' flag to match across multiple lines
   const displayMathPattern = /\\\[[\s\S]*?\\\]/;
@@ -15,11 +16,9 @@ const containsLatexDelimiters = (content: string): boolean => {
   return displayMathPattern.test(content) || inlineMathPattern.test(content);
 };
 
-export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
-  content,
-}) => {
+const WebDisplay = memo(function WebDisplay({ html }: { html: string }) {
+  const { width: contentWidth } = useWindowDimensions();
   const theme = useTheme();
-  const { width } = useWindowDimensions();
 
   const tagsStyles = {
     body: {
@@ -36,6 +35,20 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
       marginBottom: theme.spacing.small,
     },
   };
+
+  return (
+    <RenderHtml
+      contentWidth={contentWidth}
+      source={{ html }}
+      tagsStyles={tagsStyles}
+    />
+  );
+});
+
+export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
+  content = '',
+}) => {
+  const theme = useTheme();
 
   // MathJax styling
   const mathJaxStyle = `
@@ -106,11 +119,7 @@ export const NativeContentRenderer: React.FC<ContentRendererProps> = ({
           html={wrappedContent}
         />
       ) : (
-        <RenderHtml
-          contentWidth={width}
-          source={{ html: content }}
-          tagsStyles={tagsStyles}
-        />
+        <WebDisplay html={content} />
       )}
     </View>
   );

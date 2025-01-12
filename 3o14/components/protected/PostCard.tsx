@@ -29,7 +29,6 @@ interface PostCardProps {
   isBoost?: boolean;
 }
 
-
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
   const router = useRouter();
   const theme = useTheme();
@@ -489,7 +488,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const renderPoll = () => {
     if (!post.poll) return null;
     const isOwnPoll = post.account.id === currentUserId;
-    const hasVoted = post.poll.voted || false; // Add this based on your API response
+    const hasVoted = post.poll.voted || false;
 
     return (
       <PollComponent
@@ -505,7 +504,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     try {
       if (!server || !post.poll) return;
 
-      // Call API
       const updatedPoll = await ApiService.votePoll(server, post.poll.id, choices);
 
       // Update local state with the response from server
