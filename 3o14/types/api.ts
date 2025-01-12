@@ -87,6 +87,16 @@ export interface Post {
   favourited?: boolean;
   reblogged?: boolean;
   visibility: 'public' | 'private' | 'unlisted' | 'direct';
+  in_reply_to_id: string | null;
+  in_reply_to_account_id: string | null;
+  mentions: Mention[];
+}
+
+interface Mention {
+  id: string;
+  username: string;
+  url: string;
+  acct: string;
 }
 
 export interface Visibility {

@@ -719,6 +719,29 @@ export const ApiService = {
     }
 
     return response.json();
+  },
+
+  async getAccount(server: string, accountId: string): Promise<Account> {
+    const accessToken = await StorageService.get('accessToken');
+    if (!accessToken) throw new Error('Not authenticated');
+
+    const url = `https://${server}/api/v1/accounts/${accountId}`;
+
+    try {
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch account: ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch account: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
 };

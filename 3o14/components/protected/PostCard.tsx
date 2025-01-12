@@ -16,11 +16,11 @@ import { MediaViewer } from '@/components/common/Media/MediaViewer';
 import { useAuth } from '@/hooks/useAuth';
 import { PollComponent } from '@/components/common/PollComponent';
 
-//LogBox.ignoreLogs([
-//  'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
-//  'Warning: MemoizedTNodeRenderer: Support for defaultProps will be removed from memo components in a future major release.',
-//  'Warning: TRenderEngineProvider: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.',
-//]);
+LogBox.ignoreLogs([
+  'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
+  'Warning: MemoizedTNodeRenderer: Support for defaultProps will be removed from memo components in a future major release.',
+  'Warning: TRenderEngineProvider: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.',
+]);
 
 interface PostCardProps {
   post: Post;
@@ -42,6 +42,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const [showModal, setShowModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [replyToAccount, setReplyToAccount] = useState<Account | null>(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -413,6 +414,19 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     renderedContent: {
       paddingLeft: 40,
     },
+    replyInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: theme.spacing.small,
+    },
+    replyText: {
+      color: theme.colors.textSecondary,
+      marginLeft: theme.spacing.small,
+      fontSize: 14,
+    },
+    replyUsername: {
+      color: theme.colors.primary,
+    },
   });
 
   const renderersProps = {
@@ -586,6 +600,29 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     }
   };
 
+  const handleReplyToPress = () => {
+    if (post.in_reply_to_id && post.in_reply_to_account_id) {
+      router.push(`/screens/thread/${post.in_reply_to_id}`);
+    }
+  };
+
+  useEffect(() => {
+    const fetchReplyToAccount = async () => {
+      if (!server || !post.in_reply_to_account_id) return;
+
+      try {
+        const account = await ApiService.getAccount(server, post.in_reply_to_account_id);
+        setReplyToAccount(account);
+      } catch (error) {
+        console.error('Error fetching reply-to account:', error);
+      }
+    };
+
+    if (post.in_reply_to_account_id) {
+      fetchReplyToAccount();
+    }
+  }, [server, post.in_reply_to_account_id]);
+
   const renderContent = () => {
     if (post.reblog && !isBoost) {
       return (
@@ -605,6 +642,24 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
     return (
       <>
+        {post.in_reply_to_id && (
+          <TouchableOpacity
+            onPress={handleReplyToPress}
+            style={styles.replyInfo}
+          >
+            <Ionicons
+              name="return-up-back-outline"
+              size={16}
+              color={theme.colors.textSecondary}
+            />
+            <Text style={styles.replyText}>
+              In reply to{' '}
+              <Text style={styles.replyUsername}>
+                @{replyToAccount?.acct || '...'}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+        )}
         <Pressable
           onPress={handleProfilePress}
         >
