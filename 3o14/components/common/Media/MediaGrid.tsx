@@ -95,8 +95,10 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
       case 2:
         return styles.halfWidth;
       case 3:
-      case 4:
         return index === 0 ? styles.fullWidth : styles.halfWidth;
+      case 4:
+        return styles.halfWidth;
+
       default:
         return styles.halfWidth;
     }
@@ -109,8 +111,9 @@ export const MediaGrid: React.FC<MediaGridProps> = ({
       case 2:
         return styles.doubleContainer;
       case 3:
-      case 4:
         return styles.tripleContainer;
+      case 4:
+
       default:
         return styles.tripleContainer;
     }
