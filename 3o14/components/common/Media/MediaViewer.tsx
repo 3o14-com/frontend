@@ -127,6 +127,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = memo(({
 
   const renderMediaItem = useCallback(({ item }: { item: MediaAttachment }) => (
     <CarouselRenderItem
+      key={item.id}
       item={item}
       mediaWidth={mediaWidth}
       mediaHeight={mediaHeight}
@@ -167,7 +168,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = memo(({
           panGestureHandlerProps={{
             activeOffsetX: [-10, 10],
           }}
-          windowSize={3}
+          windowSize={4}
         />
       </View>
     </Modal>
