@@ -655,7 +655,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
             <Text style={styles.replyText}>
               In reply to{' '}
               <Text style={styles.replyUsername}>
-                @{replyToAccount?.acct || '...'}
+                {`@${replyToAccount?.acct || 'someone'}`}
               </Text>
             </Text>
           </TouchableOpacity>
