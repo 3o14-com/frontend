@@ -9,7 +9,7 @@ import {
   StatusBar,
   TouchableOpacity
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import Carousel from 'react-native-reanimated-carousel';
 import { MediaAttachment } from '@/types/api';
 import { runOnJS } from 'react-native-reanimated';
@@ -33,35 +33,43 @@ const MediaImage = memo(({ uri, width, height }: { uri: string; width: number; h
   />
 ));
 
-const MediaVideo = memo(({ uri, width, height, isGifv }: { uri: string; width: number; height: number; isGifv: boolean }) => (
-  <Video
-    source={{ uri }}
-    style={{
-      width,
-      height,
-    }}
-    resizeMode={ResizeMode.CONTAIN}
-    useNativeControls
-    isLooping={isGifv}
-    shouldPlay={false}
-  />
-));
+const MediaVideo = memo(({ uri, width, height, isGifv }: { uri: string; width: number; height: number; isGifv: boolean }) => {
+  const player = useVideoPlayer(uri, player => {
+    player.loop = isGifv;
+    player.play();
+  });
+  return (
+    <VideoView
+      style={{
+        width,
+        height,
+      }}
+      player={player}
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+});
 
-const MediaAudio = memo(({ uri, previewUri, width }: { uri: string; previewUri: string; width: number }) => (
-  <View style={styles.audioContainer}>
-    <Video
-      source={{ uri }}
-      style={{ width: Platform.OS === 'web' ? width * 0.6 : width * 0.8 }}
-      useNativeControls
-      isLooping={false}
-      shouldPlay={false}
-    />
-    <Image
-      source={{ uri: previewUri }}
-      style={styles.audioPreview}
-    />
-  </View>
-));
+const MediaAudio = memo(({ uri, previewUri, width }: { uri: string; previewUri: string; width: number }) => {
+  const player = useVideoPlayer(uri, player => {
+    player.loop = false;
+  });
+
+  return (
+    <View style={styles.audioContainer}>
+      <VideoView
+        style={{ width: Platform.OS === 'web' ? width * 0.6 : width * 0.8 }}
+        player={player}
+        allowsFullscreen={false}
+      />
+      <Image
+        source={{ uri: previewUri }}
+        style={styles.audioPreview}
+      />
+    </View>
+  );
+});
 
 export const MediaViewer: React.FC<MediaViewerProps> = ({
   visible,
