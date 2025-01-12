@@ -16,11 +16,11 @@ import { MediaViewer } from '@/components/common/Media/MediaViewer';
 import { useAuth } from '@/hooks/useAuth';
 import { PollComponent } from '@/components/common/PollComponent';
 
-LogBox.ignoreLogs([
-  'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
-  'Warning: MemoizedTNodeRenderer: Support for defaultProps will be removed from memo components in a future major release.',
-  'Warning: TRenderEngineProvider: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.',
-]);
+//LogBox.ignoreLogs([
+//  'Warning: TNodeChildrenRenderer: Support for defaultProps will be removed from function components in a future major release.',
+//  'Warning: MemoizedTNodeRenderer: Support for defaultProps will be removed from memo components in a future major release.',
+//  'Warning: TRenderEngineProvider: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.',
+//]);
 
 interface PostCardProps {
   post: Post;

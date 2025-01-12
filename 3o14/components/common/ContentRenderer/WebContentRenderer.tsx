@@ -15,7 +15,13 @@ declare global {
   }
 }
 
-const WebDisplay = memo(function WebDisplay({ html, width, tagsStyles, renderersProps, systemFonts }: {
+const WebDisplay = memo(function WebDisplay({
+  html,
+  width,
+  tagsStyles = {},
+  renderersProps = {},
+  systemFonts = [],
+}: {
   html: string;
   width: number;
   tagsStyles?: Record<string, any>;
@@ -38,9 +44,9 @@ const WebDisplay = memo(function WebDisplay({ html, width, tagsStyles, renderers
 export const WebContentRenderer: React.FC<ContentRendererProps> = ({
   content = '',
   width,
-  tagsStyles,
-  renderersProps,
-  systemFonts,
+  tagsStyles = {},
+  renderersProps = {},
+  systemFonts = [],
 }) => {
   const [mathReady, setMathReady] = useState(false);
   const [key, setKey] = useState(0);
