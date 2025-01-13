@@ -2,26 +2,17 @@ import React from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { WebNavigation, RightSidebar } from './WebNavigation';
 import { useTheme } from '@/hooks/useTheme';
-import { router } from 'expo-router';
-import { StorageService } from '@/services/storage';
+import { useAuth } from '@/hooks/useAuth';
 
 interface WebLayoutProps {
   children: React.ReactNode;
   currentRoute?: string;
 }
 
-const handleLogout = async () => {
-  try {
-    await StorageService.clear();
-    router.push('/(auth)');
-  } catch (error) {
-    console.error("Failed to logout:", error);
-  }
-};
-
 export const WebLayout: React.FC<WebLayoutProps> = ({ children, currentRoute = 'index' }) => {
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  const { logout } = useAuth();
 
   const styles = StyleSheet.create({
     webLayoutContainer: {
@@ -42,7 +33,7 @@ export const WebLayout: React.FC<WebLayoutProps> = ({ children, currentRoute = '
       <WebNavigation
         currentRoute={currentRoute}
         theme={theme}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
       <View style={styles.webContent}>
         {children}

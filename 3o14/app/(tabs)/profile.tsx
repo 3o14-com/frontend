@@ -31,7 +31,7 @@ interface EditableProfile {
 export default function ProfileScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,15 +64,6 @@ export default function ProfileScreen() {
       });
     }
   }, [profile.account]);
-
-  const handleLogout = async () => {
-    try {
-      await StorageService.clear();
-      router.push('/(auth)');
-    } catch (error) {
-      console.error("Failed to logout:", error);
-    }
-  };
 
   const pickImage = async (type: 'avatar' | 'header') => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -416,7 +407,7 @@ export default function ProfileScreen() {
           },
           {
             text: 'Logout',
-            onPress: handleLogout,
+            onPress: logout,
             destructive: true,
             icon: 'log-out-outline'
           },
