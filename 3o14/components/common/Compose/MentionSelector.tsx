@@ -162,6 +162,8 @@ export const MentionSelector: React.FC<MentionSelectorProps> = ({
             <FlatList
               data={results}
               keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.accountItem}

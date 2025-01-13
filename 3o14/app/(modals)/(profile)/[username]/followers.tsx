@@ -217,6 +217,8 @@ export default function FollowersScreen() {
         data={followers}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}

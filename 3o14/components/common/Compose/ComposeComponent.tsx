@@ -213,7 +213,10 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
-      <ScrollView style={styles.contentContainer}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        style={styles.contentContainer}>
         {replyToPost && (
           <ReplyPreview account={replyToPost.account.acct} />
         )}
@@ -247,7 +250,10 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
         />
 
         <View style={styles.previewBox}>
-          <ScrollView>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          >
             <ContentRenderer
               content={formattedContent}
               width={width}

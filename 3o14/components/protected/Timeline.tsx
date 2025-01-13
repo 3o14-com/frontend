@@ -225,6 +225,8 @@ export function Timeline({ type }: TimelineProps) {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
         onEndReached={handleLoadMore}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         onEndReachedThreshold={0.5}
         onScroll={handleScroll}
         scrollEventThrottle={16}

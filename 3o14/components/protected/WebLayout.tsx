@@ -24,12 +24,13 @@ export const WebLayout: React.FC<WebLayoutProps> = ({ children, currentRoute = '
     webContent: {
       flex: 1,
       height: '100%',
-      overflow: 'scroll',
+      overflow: 'hidden',
     },
   });
 
   return (
-    <View style={styles.webLayoutContainer}>
+    <View
+      style={styles.webLayoutContainer}>
       <WebNavigation
         currentRoute={currentRoute}
         theme={theme}

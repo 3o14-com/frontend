@@ -43,7 +43,11 @@ export default function Login() {
         barStyle={theme.colors.background === '#ffffff' ? 'dark-content' : 'light-content'}
         backgroundColor={theme.colors.background}
       />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
         <Image
           source={require('@/assets/images/makuro.png')}
           style={styles.loginImage}

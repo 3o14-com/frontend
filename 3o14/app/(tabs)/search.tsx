@@ -328,6 +328,8 @@ export default function Search() {
       ) : (
         <FlatList
           data={results}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
             <AccountItem
               account={item}

@@ -266,7 +266,12 @@ export default function ProfileScreen() {
     }
 
     return (
-      <ScrollView style={styles.editingContainer} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        style={styles.editingContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         <TextInput
           style={styles.input}
           value={formValues.display_name}

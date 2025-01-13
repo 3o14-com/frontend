@@ -53,6 +53,8 @@ export const ProfilePosts: React.FC<ProfilePostsProps> = ({
     <FlatList
       style={styles.container}
       data={posts}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
       keyExtractor={(item, index) => `${item.id}-${index}`}
       renderItem={({ item }) => (
         <View style={styles.postContainer}>

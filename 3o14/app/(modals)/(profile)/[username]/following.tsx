@@ -215,6 +215,8 @@ export default function FollowingScreen() {
         style={styles.container}
         data={following}
         renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl

@@ -185,6 +185,8 @@ export default function ThreadScreen() {
       ) : (
         <ScrollView
           style={styles.container}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
