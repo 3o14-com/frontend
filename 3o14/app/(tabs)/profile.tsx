@@ -5,12 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  Alert,
   ScrollView,
   Text,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import { Account, Post } from '@/types/api';
@@ -64,30 +62,6 @@ export default function ProfileScreen() {
       });
     }
   }, [profile.account]);
-
-  const pickImage = async (type: 'avatar' | 'header') => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant permission to access your photos');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images" as const,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-      setEditableProfile(prev => ({
-        ...prev,
-        [type]: base64Image,
-      }));
-    }
-  };
-
 
   const fetchProfile = async (refresh = false) => {
     if (!user || fetchError) return; // Prevent fetching if there's already an error
@@ -188,15 +162,7 @@ export default function ProfileScreen() {
         header: editableProfile.header,
       });
 
-      setProfile(prev => ({
-        ...prev,
-        account: prev.account ? {
-          ...prev.account,
-          display_name: formValues.display_name,
-          note: formValues.bio,
-          header: editableProfile.header || prev.account.header,
-        } : null,
-      }));
+      handleRefresh()
 
       setIsEditing(false);
     } catch (error) {
@@ -288,20 +254,6 @@ export default function ProfileScreen() {
           placeholderTextColor={theme.colors.textSecondary}
           multiline
         />
-
-        <TouchableOpacity
-          style={styles.imagePickerButton}
-          onPress={() => pickImage('avatar')}
-        >
-          <Text style={{ color: '#FFFFFF' }}>Change Avatar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.imagePickerButton}
-          onPress={() => pickImage('header')}
-        >
-          <Text style={{ color: '#FFFFFF' }}>Change Header</Text>
-        </TouchableOpacity>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity

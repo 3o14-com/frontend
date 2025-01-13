@@ -575,7 +575,7 @@ export const ApiService = {
       formData.append('discoverable', params.discoverable.toString());
     }
 
-    // Handle profile fields (if provided)
+    // Handle profile fields
     if (params.fields_attributes) {
       params.fields_attributes.forEach((field, index) => {
         formData.append(`fields_attributes[${index}][name]`, field.name);
@@ -583,7 +583,7 @@ export const ApiService = {
       });
     }
 
-    // Handle avatar and header images (if provided)
+    // Handle avatar and header images
     if (params.avatar) {
       // Assuming avatar is a base64 string
       const avatarBlob = await (await fetch(params.avatar)).blob();
@@ -600,7 +600,6 @@ export const ApiService = {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          // Don't set Content-Type header - it will be set automatically with boundary
         },
         body: formData,
       });

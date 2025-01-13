@@ -10,6 +10,25 @@ export interface Account {
   following_count: number;
   posts_count: number;
   created_at: string;
+  locked: boolean;
+  bot: boolean;
+  discoverable?: boolean;
+  fields?: Array<{
+    name: string;
+    value: string;
+    verified_at: string | null;
+  }>;
+  source?: {
+    privacy: string;
+    sensitive: boolean;
+    language: string | null;
+    note: string;
+    fields: Array<{
+      name: string;
+      value: string;
+      verified_at: string | null;
+    }>;
+  };
 }
 
 export interface Relationship {
