@@ -126,12 +126,12 @@ export interface MediaUploadResponse {
 
 export interface UpdateProfileParams {
   display_name?: string;
-  note?: string;         // Bio
-  avatar?: string;       // Base64 encoded image
-  header?: string;       // Base64 encoded image
-  locked?: boolean;      // Make account private/public
-  bot?: boolean;         // Is this account automated
-  discoverable?: boolean; // Allow account to be discovered
+  note?: string;
+  avatar?: string;
+  header?: string;
+  locked?: boolean;
+  bot?: boolean;
+  discoverable?: boolean;
   fields_attributes?: Array<{
     name: string;
     value: string;
