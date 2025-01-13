@@ -71,6 +71,7 @@ const handleLogoutConfirm = async () => {
 interface WebNavigationProps {
   theme: ReturnType<typeof useTheme>;
   onLogout: () => Promise<void>;
+  currentRoute: string;
 }
 
 export const WebNavigation: React.FC<WebNavigationProps> = ({ theme }) => {
