@@ -36,6 +36,7 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
@@ -96,8 +97,9 @@ export default function ProfileScreen() {
     }
   };
 
+
   const fetchProfile = async (refresh = false) => {
-    if (!user) return;
+    if (!user || fetchError) return; // Prevent fetching if there's already an error
 
     try {
       const server = await StorageService.get('server');
@@ -128,8 +130,10 @@ export default function ProfileScreen() {
       } else {
         setHasMorePosts(false);
       }
+      setFetchError(false); // Reset error state on success
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setFetchError(true); // Set error state on failure
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);
@@ -138,10 +142,10 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !fetchError) {
       fetchProfile(true);
     }
-  }, [user]);
+  }, [user, fetchError]); // Add fetchError dependency
 
   const handleRefresh = () => {
     setIsRefreshing(true);

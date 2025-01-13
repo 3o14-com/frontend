@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
@@ -16,6 +16,7 @@ export default function ProfileScreen() {
   const theme = useTheme();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false); // Prevent multiple fetches
   const [isFollowing, setIsFollowing] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -31,30 +32,35 @@ export default function ProfileScreen() {
   });
 
   useEffect(() => {
-    const fetchRelationship = async () => {
-      if (profile.account) {
-        try {
-          const server = await StorageService.get('server');
-          if (!server) return;
-
-          const relationship = await ApiService.getRelationship(server, profile.account.id);
-          setIsFollowing(relationship.following);
-        } catch (error) {
-          console.error('Error fetching relationship:', error);
-        }
-      }
-    };
-
-    fetchRelationship();
+    if (profile.account) {
+      fetchRelationship();
+    }
   }, [profile.account]);
 
-  const handleFollowPress = async () => {
+  const fetchRelationship = async () => {
     if (!profile.account) return;
 
     try {
       const server = await StorageService.get('server');
-      if (!server) throw new Error('Server not configured');
+      if (!server) return;
 
+      const relationship = await ApiService.getRelationship(server, profile.account.id);
+      setIsFollowing(relationship.following);
+    } catch (error) {
+      console.error('Error fetching relationship:', error);
+    }
+  };
+
+  const handleFollowPress = async () => {
+    if (!profile.account) return;
+
+    const server = await StorageService.get('server');
+    if (!server) {
+      Alert.alert('Error', 'Server not configured');
+      return;
+    }
+
+    try {
       setIsFollowing(!isFollowing);
 
       if (isFollowing) {
@@ -76,11 +82,16 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error('Error following/unfollowing:', error);
-      setIsFollowing(isFollowing);
+      setIsFollowing(!isFollowing); // Revert state on failure
+      Alert.alert('Error', 'Could not update follow status. Please try again.');
     }
   };
 
   const fetchProfile = async (refresh = false) => {
+    if (isFetching) return; // Prevent duplicate fetches
+
+    setIsFetching(true);
+
     try {
       const server = await StorageService.get('server');
       if (!server) throw new Error('Server not configured');
@@ -96,26 +107,26 @@ export default function ProfileScreen() {
       setProfile((prev) => ({
         account: refresh ? account : prev.account,
         posts: refresh
-          ? (posts || [])
+          ? posts || []
           : [
-            ...prev.posts.filter(post => !posts?.some(newPost => newPost.id === post.id)),
-            ...(posts || []),
-          ],
+              ...prev.posts.filter((post) => !posts?.some((newPost) => newPost.id === post.id)),
+              ...(posts || []),
+            ],
       }));
 
       if (posts?.length > 0) {
-        if (!refresh) {
-          setMaxId(posts[posts.length - 1].id);
-        }
+        setMaxId(posts[posts.length - 1].id);
       } else {
         setHasMorePosts(false);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'Could not fetch profile. Please try again.');
     } finally {
+      setIsFetching(false);
       setIsLoading(false);
-      setIsFetchingMore(false);
       setIsRefreshing(false);
+      setIsFetchingMore(false);
     }
   };
 
@@ -183,15 +194,8 @@ export default function ProfileScreen() {
           presentation: 'transparentModal',
           headerTintColor: theme.colors.text,
           headerLeft: () => (
-            <TouchableOpacity
-              style={{ padding: 8 }}
-              onPress={() => router.back()}
-            >
-              <Ionicons
-                name="arrow-back"
-                size={24}
-                color={theme.colors.text}
-              />
+            <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
             </TouchableOpacity>
           ),
         }}
