@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import React, { useState, useEffect } from 'react';
-import { Platform, useWindowDimensions, View, StyleSheet } from 'react-native';
+import { Platform, useWindowDimensions, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WebLayout } from '@/components/protected/WebLayout';
 import { navigationItems } from '@/components/protected/WebNavigation';
@@ -21,10 +21,6 @@ export default function TabsLayout() {
   const showWebNav = isWeb && contentWidth === 'big';
 
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      height: Platform.OS === 'web' ? 100 : '100%',
-    },
     tabBar: {
       flexDirection: 'row',
       maxWidth: '100%',
@@ -37,7 +33,7 @@ export default function TabsLayout() {
     },
     tabBarIcon: {
       marginBottom: 0,
-      marginTop: Platform.OS === 'ios' ? 6 : 4,
+      marginTop: 4,
     },
   });
 
@@ -88,8 +84,6 @@ export default function TabsLayout() {
       <TabNavigator />
     </WebLayout>
   ) : (
-    <View style={styles.container}>
-      <TabNavigator />
-    </View>
+    <TabNavigator />
   );
 }
