@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Share, Linking, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
-import { Post, Account } from '@/types/api';
+import { Post } from '@/types/api';
 import { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
 import { format } from 'date-fns';
 import { LogBox } from 'react-native';
@@ -42,7 +42,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const [showModal, setShowModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [replyToAccount, setReplyToAccount] = useState<Account | null>(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -306,7 +305,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       marginBottom: theme.spacing.small,
     },
     boostText: {
-      color: theme.colors.text,
+      color: theme.colors.textSecondary,
       marginLeft: theme.spacing.small,
       fontSize: 14,
     },
@@ -424,7 +423,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       marginLeft: theme.spacing.small,
       fontSize: 14,
     },
-    replyUsername: {
+    accentText: {
       color: theme.colors.primary,
     },
   });
@@ -606,70 +605,67 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     }
   };
 
-  useEffect(() => {
-    const fetchReplyToAccount = async () => {
-      if (!server || !post.in_reply_to_account_id) return;
-
-      try {
-        const account = await ApiService.getAccount(server, post.in_reply_to_account_id);
-        setReplyToAccount(account);
-      } catch (error) {
-        console.error('Error fetching reply-to account:', error);
-      }
-    };
-
-    if (post.in_reply_to_account_id) {
-      fetchReplyToAccount();
-    }
-  }, [server, post.in_reply_to_account_id]);
-
   const renderContent = () => {
     if (post.reblog && !isBoost) {
+      const isThreadedReply = post.reblog.in_reply_to_id;
+
       return (
         <>
           <TouchableOpacity
             onPress={() => handleProfileNavigation(post.account.acct)}
           >
             <View style={styles.boostInfo}>
-              <Ionicons name="repeat" size={16} color={theme.colors.text} />
-              <Text style={styles.boostText}>{post.account.display_name} boosted</Text>
+              <Ionicons name="repeat" size={16} color={theme.colors.textSecondary} />
+              <Text style={styles.boostText}>
+                <Text style={styles.accentText}>{post.account.display_name}</Text>
+                {isThreadedReply ? ' Boosted a Thread ' : ' Boosted'}
+              </Text>
+              {isThreadedReply && (
+                <Ionicons
+                  name="git-branch-outline"
+                  size={16}
+                  color={theme.colors.textSecondary}
+                />
+              )}
             </View>
           </TouchableOpacity>
-          <PostCard post={post.reblog} isBoost={true} onLike={onLike} onReblog={onReblog} />
+          <PostCard
+            post={post.reblog}
+            isBoost={true}
+            onLike={onLike}
+            onReblog={onReblog}
+          />
         </>
       );
     }
 
     return (
       <>
-        {post.in_reply_to_id && replyToAccount && (
+        {post.in_reply_to_id && !isBoost && (
           <TouchableOpacity
             onPress={handleReplyToPress}
             style={styles.replyInfo}
           >
             <Ionicons
-              name="return-up-back-outline"
+              name="git-branch-outline"
               size={16}
               color={theme.colors.textSecondary}
             />
             <Text style={styles.replyText}>
-              In reply to{' '}
-              <Text style={styles.replyUsername}>
-                {`@${replyToAccount?.acct || 'someone'}`}
-              </Text>
+              Threaded Reply
             </Text>
           </TouchableOpacity>
         )}
-        <Pressable
-          onPress={handleProfilePress}
-        >
+        <Pressable onPress={handleProfilePress}>
           <View style={styles.header}>
             <Image
               source={{ uri: post.account.avatar }}
               style={styles.avatar}
             />
             <View>
-              <Text style={styles.display_name}>{post.account?.display_name || post.account?.username}</Text>
+              <Text style={styles.display_name}>
+                {post.account?.display_name || post.account?.username}
+              </Text>
               <Text style={styles.username}>
                 <Text style={styles.fediverseId}>@{post.account.acct}</Text>
               </Text>
@@ -698,11 +694,20 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
         <View style={styles.actions}>
           <View style={styles.leftActions}>
             <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-              <Ionicons name={isLiked ? 'heart' : 'heart-outline'} size={20} color={isLiked ? theme.colors.error : theme.colors.text} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>{favouritesCount}</Text>
+              <Ionicons
+                name={isLiked ? 'heart' : 'heart-outline'}
+                size={20}
+                color={isLiked ? theme.colors.error : theme.colors.text}
+              />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>
+                {favouritesCount}
+              </Text>
             </TouchableOpacity>
             {post.visibility === 'public' && (
-              <TouchableOpacity style={styles.actionButton} onPress={handleReblog}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleReblog}
+              >
                 <Ionicons
                   name={isReblogged ? 'repeat' : 'repeat-outline'}
                   size={20}
@@ -714,8 +719,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
               </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.actionButton} onPress={handleReply}>
-              <Ionicons name={'return-down-back-outline'} size={20} color={theme.colors.text} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>{post.replies_count}</Text>
+              <Ionicons
+                name={'return-down-back-outline'}
+                size={20}
+                color={theme.colors.text}
+              />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>
+                {post.replies_count}
+              </Text>
             </TouchableOpacity>
           </View>
           <View style={styles.rightActions}>
@@ -723,7 +734,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
               style={styles.actionButton}
               onPress={() => setShowModal(true)}
             >
-              <Ionicons name={'ellipsis-horizontal'} size={20} color={theme.colors.text} />
+              <Ionicons
+                name={'ellipsis-horizontal'}
+                size={20}
+                color={theme.colors.text}
+              />
             </TouchableOpacity>
           </View>
           {renderModal()}
@@ -752,7 +767,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     <Pressable
       style={({ pressed }) => [
         styles.container,
-        pressed && styles.pressed
+        pressed && styles.pressed,
       ]}
       onPress={handlePostPress}
     >
