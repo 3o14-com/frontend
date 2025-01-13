@@ -642,7 +642,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
     return (
       <>
-        {post.in_reply_to_id && (
+        {post.in_reply_to_id && replyToAccount && (
           <TouchableOpacity
             onPress={handleReplyToPress}
             style={styles.replyInfo}
