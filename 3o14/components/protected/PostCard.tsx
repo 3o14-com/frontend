@@ -669,7 +669,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
               style={styles.avatar}
             />
             <View>
-              <Text style={styles.display_name}>{post.account?.display_name || 'Unknown User'}</Text>
+              <Text style={styles.display_name}>{post.account?.display_name || post.account?.username}</Text>
               <Text style={styles.username}>
                 <Text style={styles.fediverseId}>@{post.account.acct}</Text>
               </Text>
