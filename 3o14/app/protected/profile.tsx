@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  FlatList,
   ActivityIndicator,
   StyleSheet,
-  RefreshControl,
   TouchableOpacity,
-  Image,
-  Text,
   TextInput,
   Alert,
   ScrollView,
-  useWindowDimensions,
+  Text,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { PostCard } from '@/components/protected/PostCard';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import { Account, Post } from '@/types/api';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { ContentRenderer } from '@/components/common/ContentRenderer';
-import { defaultSystemFonts } from 'react-native-render-html';
 import { Ionicons } from '@expo/vector-icons';
 import Confirm from '@/components/common/Confirm';
-
+import { ProfileHeader } from '@/components/common/Profile/ProfileHeader';
+import { ProfilePosts } from '@/components/common/Profile/ProfilePosts';
 
 interface EditableProfile {
   display_name: string;
@@ -33,7 +27,6 @@ interface EditableProfile {
   avatar?: string;
   header?: string;
 }
-
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -47,18 +40,7 @@ export default function ProfileScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [maxId, setMaxId] = useState<string | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(true);
-  const { width } = useWindowDimensions();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogout = async () => {
-    try {
-      await StorageService.clear();
-
-      router.push('/');
-    } catch (error) {
-      console.error("Failed to logout:", error);
-    }
-  };
 
   const [profile, setProfile] = useState<{
     account: Account | null;
@@ -82,6 +64,15 @@ export default function ProfileScreen() {
     }
   }, [profile.account]);
 
+  const handleLogout = async () => {
+    try {
+      await StorageService.clear();
+      router.push('/');
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
+  };
+
   const pickImage = async (type: 'avatar' | 'header') => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -104,13 +95,6 @@ export default function ProfileScreen() {
       }));
     }
   };
-
-
-  useEffect(() => {
-    if (user) {
-      fetchProfile(true);
-    }
-  }, [user]);
 
   const fetchProfile = async (refresh = false) => {
     if (!user) return;
@@ -154,7 +138,9 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    fetchProfile(true);
+    if (user) {
+      fetchProfile(true);
+    }
   }, [user]);
 
   const handleRefresh = () => {
@@ -187,6 +173,43 @@ export default function ProfileScreen() {
     router.push('/screens/notifications');
   };
 
+  const handleSaveProfile = async (formValues: { display_name: string; bio: string }) => {
+    if (!profile.account) return;
+
+    try {
+      setIsSaving(true);
+      const server = await StorageService.get('server');
+      if (!server) throw new Error('Server not configured');
+
+      setEditableProfile(prev => ({
+        ...prev,
+        display_name: formValues.display_name,
+        bio: formValues.bio
+      }));
+
+      await ApiService.updateProfile(server, {
+        display_name: formValues.display_name,
+        note: formValues.bio,
+        header: editableProfile.header,
+      });
+
+      setProfile(prev => ({
+        ...prev,
+        account: prev.account ? {
+          ...prev.account,
+          display_name: formValues.display_name,
+          note: formValues.bio,
+          header: editableProfile.header || prev.account.header,
+        } : null,
+      }));
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -199,85 +222,9 @@ export default function ProfileScreen() {
       alignItems: 'center',
       backgroundColor: theme.colors.background,
     },
-    headerImage: {
-      width: '100%',
-      height: 150,
-    },
-    avatarContainer: {
-      marginTop: -40,
-      marginLeft: 16,
-      borderRadius: 40,
-      borderWidth: 4,
-      borderColor: theme.colors.background,
-      width: 80,
-      height: 80,
-      overflow: 'hidden',
-      backgroundColor: theme.colors.background,
-    },
-    avatar: {
-      width: '100%',
-      height: '100%',
-    },
-    profileInfo: {
+    editingContainer: {
       padding: 16,
       backgroundColor: theme.colors.background,
-    },
-    displayName: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    username: {
-      fontSize: 16,
-      color: theme.colors.text,
-      marginTop: 4,
-    },
-    bio: {
-      fontSize: 16,
-      color: theme.colors.text,
-      marginTop: 12,
-    },
-    stats: {
-      flexDirection: 'row',
-      marginTop: 16,
-      borderTopWidth: 0,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-      paddingTop: 16,
-      paddingBottom: 16,
-    },
-    stat: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    statNumber: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    statLabel: {
-      fontSize: 14,
-      color: theme.colors.text,
-      marginTop: 4,
-    },
-    postList: {
-      marginTop: 16,
-    },
-    editButton: {
-      marginTop: 16,
-      paddingHorizontal: 24,
-      paddingVertical: 8,
-      borderRadius: theme.borderRadius.medium,
-      borderWidth: 1,
-      alignSelf: 'center',
-      backgroundColor: theme.colors.primary,
-      minWidth: 120,
-      alignItems: 'center',
-    },
-    editButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: '#FFFFFF',
     },
     input: {
       borderWidth: 1,
@@ -288,26 +235,16 @@ export default function ProfileScreen() {
       color: theme.colors.text,
       backgroundColor: theme.colors.background,
     },
-    editingContainer: {
+    buttonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginTop: 16,
-      borderWidth: 0,
       gap: 8,
     },
-    cancelButton: {
+    button: {
       flex: 1,
       paddingVertical: 8,
       borderRadius: theme.borderRadius.medium,
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      alignItems: 'center',
-    },
-    saveButton: {
-      flex: 1,
-      paddingVertical: 8,
-      borderRadius: theme.borderRadius.medium,
-      backgroundColor: theme.colors.primary,
       alignItems: 'center',
     },
     imagePickerButton: {
@@ -316,31 +253,6 @@ export default function ProfileScreen() {
       backgroundColor: theme.colors.primary,
       borderRadius: theme.borderRadius.small,
       alignItems: 'center',
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 16,
-    },
-    logoutButton: {
-      marginTop: 16,
-      paddingHorizontal: 24,
-      paddingVertical: 8,
-      borderRadius: theme.borderRadius.medium,
-      borderWidth: 1,
-      alignSelf: 'center',
-      backgroundColor: theme.colors.error,
-      minWidth: 120,
-      alignItems: 'center',
-    },
-    logoutButtonText: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: '#FFFFFF',
-    },
-    postContainer: {
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
     },
   });
 
@@ -351,73 +263,25 @@ export default function ProfileScreen() {
     });
 
     function stripHtml(html: string): string {
-      // Replace <br> with \n and <p> with \n\n for proper line breaks
       const withLineBreaks = html
-        .replace(/<br\s*\/?>/gi, '\n') // Handle <br> tags
-        .replace(/<\/p>/gi, '\n\n')   // Handle </p> tags for paragraph endings
-        .replace(/<p>/gi, '');        // Remove opening <p> tags
-
-      // Strip remaining HTML tags
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<p>/gi, '');
       return withLineBreaks.replace(/<\/?[^>]+(>|$)/g, '').trim();
     }
 
-    const handleSaveProfile = async () => {
-      if (!profile.account) return;
-
-      try {
-        setIsSaving(true);
-        const server = await StorageService.get('server');
-        if (!server) throw new Error('Server not configured');
-
-        // Update editableProfile only when saving
-        setEditableProfile(prev => ({
-          ...prev,
-          display_name: formValues.display_name,
-          bio: formValues.bio
-        }));
-
-        await ApiService.updateProfile(server, {
-          display_name: formValues.display_name,
-          note: formValues.bio,
-          header: editableProfile.header,
-        });
-
-        setProfile(prev => ({
-          ...prev,
-          account: prev.account ? {
-            ...prev.account,
-            display_name: formValues.display_name,
-            bio: formValues.bio,
-            header: editableProfile.header || prev.account.header,
-          } : null,
-        }));
-
-        setIsEditing(false);
-        console.log('Profile updated successfully');
-      } catch (error) {
-        console.error('Error updating profile:', error);
-      } finally {
-        setIsSaving(false);
-      }
-    };
-
     return (
-      <ScrollView
-        style={styles.profileInfo}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView style={styles.editingContainer} keyboardShouldPersistTaps="handled">
         <TextInput
-          style={[styles.input, styles.displayName]}
+          style={styles.input}
           value={formValues.display_name}
           onChangeText={(text) => setFormValues(prev => ({ ...prev, display_name: text }))}
           placeholder="Display Name"
           placeholderTextColor={theme.colors.textSecondary}
         />
 
-        <Text style={styles.username}>@{profile.account?.username}</Text>
-
         <TextInput
-          style={[styles.input, styles.bio]}
+          style={[styles.input, { marginTop: 16, minHeight: 100 }]}
           value={formValues.bio}
           onChangeText={(text) => setFormValues(prev => ({ ...prev, bio: text }))}
           placeholder="Bio"
@@ -439,17 +303,17 @@ export default function ProfileScreen() {
           <Text style={{ color: '#FFFFFF' }}>Change Header</Text>
         </TouchableOpacity>
 
-        <View style={styles.editingContainer}>
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.cancelButton}
+            style={[styles.button, { borderWidth: 1, borderColor: theme.colors.border }]}
             onPress={() => setIsEditing(false)}
             disabled={isSaving}
           >
             <Text style={{ color: theme.colors.text }}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSaveProfile}
+            style={[styles.button, { backgroundColor: theme.colors.primary }]}
+            onPress={() => handleSaveProfile(formValues)}
             disabled={isSaving}
           >
             {isSaving ? (
@@ -463,27 +327,30 @@ export default function ProfileScreen() {
     );
   };
 
-  const systemFonts = [...defaultSystemFonts];
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
-  const tagsStyles = {
-    body: {
-      color: theme.colors.text,
-      fontSize: 16,
-    },
-    a: {
-      color: theme.colors.primary,
-      textDecorationLine: 'none' as const,
-    },
-    p: {
-      color: theme.colors.text,
-      marginBottom: theme.spacing.small,
-    },
-  };
+  const renderHeader = () => {
+    if (!profile.account) return null;
 
-  const renderersProps = {
-    img: {
-      enableExperimentalPercentWidth: true,
-    },
+    if (isEditing) {
+      return renderEditingForm();
+    }
+
+    return (
+      <ProfileHeader
+        account={profile.account}
+        isOwnProfile={true}
+        onFollowersPress={navigateToFollowers}
+        onFollowingPress={navigateToFollowing}
+        theme={theme}
+      />
+    );
   };
 
   return (
@@ -505,116 +372,53 @@ export default function ProfileScreen() {
               >
                 <Ionicons name="create-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
-              <>
-                <TouchableOpacity onPress={() => setShowLogoutConfirm(true)}>
-                  <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
-                </TouchableOpacity>
-
-                <Confirm
-                  visible={showLogoutConfirm}
-                  message="Are you sure you want to logout?"
-                  extraMessage="You'll need to sign in again to access your account."
-                  options={[
-                    {
-                      text: 'Cancel',
-                      onPress: () => setShowLogoutConfirm(false),
-                      icon: 'close-outline'
-                    },
-                    {
-                      text: 'Logout',
-                      onPress: handleLogout,
-                      destructive: true,
-                      icon: 'log-out-outline'
-                    },
-                  ]}
-                  onClose={() => setShowLogoutConfirm(false)}
-                />
-              </>
-            </View>
-          ),
-          headerLeft: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 16 }}>
-              <TouchableOpacity onPress={handleNotification}>
-                <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
+              <TouchableOpacity onPress={() => setShowLogoutConfirm(true)}>
+                <Ionicons name="log-out-outline" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
           ),
+          headerLeft: () => (
+            <TouchableOpacity
+              style={{ marginLeft: 16 }}
+              onPress={handleNotification}
+            >
+              <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
+            </TouchableOpacity>
+          ),
         }}
       />
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      ) : (
-        <FlatList
-          style={styles.container}
-          data={profile.posts}
-          keyExtractor={(item, index) => `${item.id}-${index}`}
-          renderItem={({ item }) => (
-            <View style={styles.postContainer}>
-              <PostCard post={item} />
-            </View>
-          )}
-          ListHeaderComponent={() => (
-            profile.account && (
-              <>
-                <Image
-                  source={{ uri: editableProfile.header || profile.account.header }}
-                  style={styles.headerImage}
-                />
-                <View style={styles.avatarContainer}>
-                  <Image
-                    source={{ uri: editableProfile.avatar || profile.account.avatar }}
-                    style={styles.avatar}
-                  />
-                </View>
-                {isEditing ? (
-                  renderEditingForm()
-                ) : (
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.displayName}>{profile.account.display_name}</Text>
-                    <Text style={styles.username}>@{profile.account.username}</Text>
 
-                    <ContentRenderer
-                      content={profile.account.note}
-                      width={width}
-                      tagsStyles={tagsStyles}
-                      renderersProps={renderersProps}
-                      systemFonts={systemFonts}
-                    />
-
-                    <View style={styles.stats}>
-                      <TouchableOpacity style={styles.stat} onPress={navigateToFollowers}>
-                        <Text style={styles.statNumber}>
-                          {profile.account.followers_count.toLocaleString()}
-                        </Text>
-                        <Text style={styles.statLabel}>Followers</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.stat} onPress={navigateToFollowing}>
-                        <Text style={styles.statNumber}>
-                          {profile.account.following_count.toLocaleString()}
-                        </Text>
-                        <Text style={styles.statLabel}>Following</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </>
-            )
-          )}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              colors={[theme.colors.primary]}
-              progressBackgroundColor={theme.colors.background}
-            />
-          }
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={isFetchingMore ? <ActivityIndicator size="small" color={theme.colors.primary} /> : null}
+      <View style={styles.container}>
+        <ProfilePosts
+          posts={profile.posts}
+          isRefreshing={isRefreshing}
+          isFetchingMore={isFetchingMore}
+          onRefresh={handleRefresh}
+          onLoadMore={handleLoadMore}
+          ListHeaderComponent={renderHeader}
+          theme={theme}
         />
-      )}
+      </View>
+
+      <Confirm
+        visible={showLogoutConfirm}
+        message="Are you sure you want to logout?"
+        extraMessage="You'll need to sign in again to access your account."
+        options={[
+          {
+            text: 'Cancel',
+            onPress: () => setShowLogoutConfirm(false),
+            icon: 'close-outline'
+          },
+          {
+            text: 'Logout',
+            onPress: handleLogout,
+            destructive: true,
+            icon: 'log-out-outline'
+          },
+        ]}
+        onClose={() => setShowLogoutConfirm(false)}
+      />
     </>
   );
 }
