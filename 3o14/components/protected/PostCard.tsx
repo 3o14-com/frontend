@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Share, Linking, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
-import { Post } from '@/types/api';
+import { Post, Account } from '@/types/api';
 import { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
 import { format } from 'date-fns';
 import { LogBox } from 'react-native';
@@ -532,7 +532,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
 
   const handlePostPress = () => {
-    router.push(`/screens/thread/${post.id}`);
+    router.push(`/(modals)/${post.id}`);
   };
 
   const handleProfilePress = () => {
@@ -545,9 +545,9 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       const username = post.account.acct;
 
       if (user.username === username) {
-        router.push(`/protected/profile`);
+        router.push(`/(tabs)/profile`);
       } else {
-        router.push(`/screens/profile/${username}`);
+        router.push(`/(modals)/(profile)/${username}`);
       }
     } catch (error) {
       console.error('Error navigating to profile:', error);
@@ -564,7 +564,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       const encodedPost = btoa(encodeURIComponent(JSON.stringify(post)));
 
       router.push({
-        pathname: '/screens/compose',
+        pathname: '/(modals)/compose',
         params: {
           replyToId: post.id,
           replyToPost: encodedPost
@@ -594,7 +594,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const handleProfileNavigation = (acct: string | unknown) => {
     if (typeof acct === 'string') {
-      router.push(`/screens/profile/${acct}`);
+      router.push(`/(modals)/(profile)/${acct}`);
     } else {
       console.error("Account ID is not a string:", acct);
     }
@@ -602,7 +602,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const handleReplyToPress = () => {
     if (post.in_reply_to_id && post.in_reply_to_account_id) {
-      router.push(`/screens/thread/${post.in_reply_to_id}`);
+      router.push(`/(modals)/${post.in_reply_to_id}`);
     }
   };
 

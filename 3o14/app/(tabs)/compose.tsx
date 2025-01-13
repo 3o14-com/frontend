@@ -20,11 +20,11 @@ export default function ComposeScreen() {
   });
 
   const handleClose = () => {
-    router.push('/protected');
+    router.push('/(tabs)');
   };
 
   const handleSubmitSuccess = () => {
-    router.push('/protected');
+    router.push('/(tabs)');
   };
 
   return (

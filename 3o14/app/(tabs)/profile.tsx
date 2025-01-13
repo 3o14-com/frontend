@@ -67,7 +67,7 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await StorageService.clear();
-      router.push('/');
+      router.push('/(auth)');
     } catch (error) {
       console.error("Failed to logout:", error);
     }
@@ -159,18 +159,18 @@ export default function ProfileScreen() {
 
   const navigateToFollowers = () => {
     if (profile.account) {
-      router.push(`/screens/profile/${user?.username}/followers`);
+      router.push(`/(modals)/(profile)/${user?.username}/followers`);
     }
   };
 
   const navigateToFollowing = () => {
     if (profile.account) {
-      router.push(`/screens/profile/${user?.username}/following`);
+      router.push(`/(modals)/(profile)/${user?.username}/following`);
     }
   };
 
   const handleNotification = () => {
-    router.push('/screens/notifications');
+    router.push('/(modals)/notifications');
   };
 
   const handleSaveProfile = async (formValues: { display_name: string; bio: string }) => {

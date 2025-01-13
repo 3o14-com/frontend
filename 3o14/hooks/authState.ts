@@ -10,7 +10,6 @@ export const useAuthState = () => {
   const isCheckingAuth = useRef(false);
 
   const checkAuth = async () => {
-    // Prevent multiple simultaneous checks
     if (isCheckingAuth.current) return;
     isCheckingAuth.current = true;
 
@@ -21,20 +20,20 @@ export const useAuthState = () => {
         StorageService.get('server')
       ]);
 
-      const currentSegments = [...segments];
+      const inAuthGroup = segments[0] === '(auth)';
+      const inProtectedGroup = segments[0] === '(tabs)' || segments[0] === '(modals)';
 
       if (accessToken && server) {
         setIsAuthenticated(true);
-        // Add a small delay before navigation
-        if (!currentSegments.some(segment => segment === 'protected')) {
+        if (inAuthGroup) {
           await new Promise(resolve => setTimeout(resolve, 100));
-          router.replace('/protected');
+          router.replace('/(tabs)');
         }
       } else {
         setIsAuthenticated(false);
-        if (currentSegments.length > 0) {
+        if (inProtectedGroup) {
           await new Promise(resolve => setTimeout(resolve, 100));
-          router.replace('/');
+          router.replace('/(auth)/auth');
         }
       }
     } catch (error) {
@@ -42,9 +41,9 @@ export const useAuthState = () => {
         error instanceof Error ? error.message : String(error)
       );
       setIsAuthenticated(false);
-      if ([...segments].length > 0) {
+      if (segments.length > 0) {
         await new Promise(resolve => setTimeout(resolve, 100));
-        router.replace('/');
+        router.replace('/(auth)/auth');
       }
     } finally {
       setIsLoading(false);
@@ -54,15 +53,12 @@ export const useAuthState = () => {
 
   useEffect(() => {
     let mounted = true;
-
     const runAuthCheck = async () => {
       if (mounted) {
         await checkAuth();
       }
     };
-
     runAuthCheck();
-
     return () => {
       mounted = false;
     };

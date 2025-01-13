@@ -119,13 +119,13 @@ export const useAuth = () => {
     setUser(userData);
     await StorageService.set('userID', userData.id);
 
-    router.push('/protected');
+    router.push('/(tabs)');
   };
 
   const logout = useCallback(async () => {
     setUser(null);
     await StorageService.clear();
-    router.push('/');
+    router.push('/(auth)');
   }, []);
 
   return { login, logout, isLoading, handleAuthCode, user };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { Text, View, FlatList, StyleSheet, StatusBar, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PostCard } from '@/components/protected/PostCard';
@@ -14,6 +14,54 @@ interface TimelineProps {
   type: TimelineType;
 }
 
+// Memoized PostCard wrapper component
+const MemoizedPostCard = memo(({ post }: { post: Post }) => (
+  <View style={styles.postContainer}>
+    <PostCard post={post} />
+  </View>
+));
+
+// Extracted styles to prevent recreation on each render
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  postContainer: {
+    borderBottomWidth: 1,
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  newPostsBanner: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    width: 'auto',
+    height: 44,
+    justifyContent: 'center',
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  newPostsText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+});
+
 export function Timeline({ type }: TimelineProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPosts, setNewPosts] = useState<Post[]>([]);
@@ -27,23 +75,40 @@ export function Timeline({ type }: TimelineProps) {
   const theme = useTheme();
   const flatListRef = useRef<FlatList>(null);
   const lastOffset = useRef(0);
-  const isNearTop = useRef(false);
   const pollingInterval = useRef<NodeJS.Timeout>();
   const seenPostIds = useRef(new Set<string>());
   const newestSeenPostId = useRef<string | null>(null);
   const scrollThreshold = 1000;
 
+  // Memoized render item function
+  const renderItem = useCallback(({ item }: { item: Post }) => (
+    <MemoizedPostCard post={item} />
+  ), []);
+
+  // Memoized key extractor
+  const keyExtractor = useCallback((item: Post) => item.id, []);
+
+  // Memoized list empty component
+  const ListEmptyComponent = useCallback(() => (
+    <Text style={{ textAlign: 'center', marginTop: 20 }}>No posts available</Text>
+  ), []);
+
+  // Memoized list footer component
+  const ListFooterComponent = useCallback(() => (
+    isFetchingMore ? <Loading /> : null
+  ), [isFetchingMore]);
+
   // Helper function to track seen posts
-  const trackSeenPosts = (newPosts: Post[]) => {
+  const trackSeenPosts = useCallback((newPosts: Post[]) => {
     newPosts.forEach(post => {
       seenPostIds.current.add(post.id);
     });
     if (newPosts.length > 0) {
       newestSeenPostId.current = newPosts[0].id;
     }
-  };
+  }, []);
 
-  const fetchTimeline = async (refresh = false) => {
+  const fetchTimeline = useCallback(async (refresh = false) => {
     try {
       const server = await StorageService.get('server');
       if (!server) {
@@ -54,6 +119,7 @@ export function Timeline({ type }: TimelineProps) {
         ? ApiService.getHomeTimeline
         : ApiService.getLocalTimeline;
       const data = await fetchFunction(server, refresh ? undefined : (maxId ?? undefined));
+
       if (data.length > 0) {
         setPosts(prevPosts => {
           const newPostsList = refresh ? data : [...prevPosts, ...data];
@@ -71,7 +137,7 @@ export function Timeline({ type }: TimelineProps) {
       setIsFetchingMore(false);
       setIsRefreshing(false);
     }
-  };
+  }, [type, maxId, trackSeenPosts]);
 
   const checkNewPosts = useCallback(async () => {
     if (!newestSeenPostId.current) return;
@@ -85,20 +151,11 @@ export function Timeline({ type }: TimelineProps) {
         : ApiService.getLocalTimeline;
 
       const newData = await fetchFunction(server, undefined);
-
-      // Filter out posts we've already seen
       const trulyNewPosts = newData.filter(post => !seenPostIds.current.has(post.id));
 
       if (trulyNewPosts.length > 0) {
-        if (isNearTop.current) {
-          setPosts(prevPosts => [...trulyNewPosts, ...prevPosts]);
-          trackSeenPosts(trulyNewPosts);
-          setNewPosts([]);
-          setShowNewPostsBanner(false);
-        } else {
-          setNewPosts(trulyNewPosts);
-          setShowNewPostsBanner(true);
-        }
+        setNewPosts(trulyNewPosts);
+        setShowNewPostsBanner(true);
       }
     } catch (error) {
       console.error('New posts check failed:', error);
@@ -106,7 +163,7 @@ export function Timeline({ type }: TimelineProps) {
   }, [type]);
 
   useEffect(() => {
-    pollingInterval.current = setInterval(checkNewPosts, 30000);
+    pollingInterval.current = setInterval(checkNewPosts, 60000);
     return () => {
       if (pollingInterval.current) {
         clearInterval(pollingInterval.current);
@@ -116,103 +173,75 @@ export function Timeline({ type }: TimelineProps) {
 
   useEffect(() => {
     fetchTimeline();
-  }, [type]);
+  }, [fetchTimeline]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     setHasMore(true);
     setMaxId(null);
     setNewPosts([]);
     setShowNewPostsBanner(false);
-    // Don't clear seenPostIds here as we want to maintain history
     fetchTimeline(true);
-  };
+  }, [fetchTimeline]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (!isFetchingMore && hasMore) {
       setIsFetchingMore(true);
       fetchTimeline();
     }
-  };
+  }, [isFetchingMore, hasMore, fetchTimeline]);
 
-  const handleScroll = (event: any) => {
+  const handleScroll = useCallback((event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    isNearTop.current = currentOffset < 200;
 
     if (currentOffset > scrollThreshold) {
-      if (currentOffset < lastOffset.current) {
-        setShowScrollTop(true);
-      } else if (currentOffset > lastOffset.current) {
-        setShowScrollTop(false);
-      }
+      setShowScrollTop(currentOffset < lastOffset.current);
     } else {
       setShowScrollTop(false);
     }
 
     lastOffset.current = currentOffset;
-  };
+  }, []);
 
-  const handleNewPostsPress = () => {
+  const handleNewPostsPress = useCallback(() => {
     setPosts(prevPosts => [...newPosts, ...prevPosts]);
     trackSeenPosts(newPosts);
     setNewPosts([]);
     setShowNewPostsBanner(false);
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-  };
+  }, [newPosts, trackSeenPosts]);
 
-  const scrollToTopAndRefresh = () => {
+  const scrollToTopAndRefresh = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
     handleRefresh();
-  };
+  }, [handleRefresh]);
 
-  const styles = StyleSheet.create({
+  // Memoized dynamic styles
+  const dynamicStyles = useCallback(() => ({
     container: {
-      flex: 1,
+      ...styles.container,
       backgroundColor: theme.colors.background,
     },
     postContainer: {
-      borderBottomWidth: 1,
+      ...styles.postContainer,
       borderBottomColor: theme.colors.border,
     },
     scrollTopButton: {
-      position: 'absolute',
-      bottom: 20,
-      right: 20,
+      ...styles.scrollTopButton,
       backgroundColor: theme.colors.primary,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      justifyContent: 'center',
-      alignItems: 'center',
-      elevation: 5,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
     },
     newPostsBanner: {
-      position: 'absolute',
-      bottom: 20,
-      alignSelf: 'center',
-      width: 'auto',
-      height: 44,
-      justifyContent: 'center',
-      borderRadius: 22,
+      ...styles.newPostsBanner,
       backgroundColor: theme.colors.primary,
-      paddingHorizontal: 16,
-      alignItems: 'center',
-      zIndex: 1000,
     },
-    newPostsText: {
-      color: '#fff',
-      fontWeight: 'bold',
-    },
-  });
+  }), [theme.colors]);
 
   if (isLoading) return <Loading />;
 
+  const currentStyles = dynamicStyles();
+
   return (
-    <View style={styles.container}>
+    <View style={currentStyles.container}>
       <StatusBar
         barStyle={theme.colors.background === '#ffffff' ? 'dark-content' : 'light-content'}
         backgroundColor={theme.colors.background}
@@ -220,13 +249,12 @@ export function Timeline({ type }: TimelineProps) {
 
       {showNewPostsBanner && newPosts.length > 0 && (
         <TouchableOpacity
-          style={styles.newPostsBanner}
+          style={currentStyles.newPostsBanner}
           onPress={handleNewPostsPress}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-up" size={15} color="#fff" />
           <Text style={styles.newPostsText}>
-            New Posts
+            {newPosts.length} New {newPosts.length === 1 ? 'Post' : 'Posts'}
           </Text>
         </TouchableOpacity>
       )}
@@ -234,16 +262,19 @@ export function Timeline({ type }: TimelineProps) {
       <FlatList
         ref={flatListRef}
         data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.postContainer}>
-            <PostCard post={item} />
-          </View>
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+        initialNumToRender={10}
+        updateCellsBatchingPeriod={50}
+        ListEmptyComponent={ListEmptyComponent}
+        ListFooterComponent={ListFooterComponent}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -253,12 +284,11 @@ export function Timeline({ type }: TimelineProps) {
             progressBackgroundColor={theme.colors.background}
           />
         }
-        ListFooterComponent={isFetchingMore ? <Loading /> : null}
       />
 
       {showScrollTop && (
         <TouchableOpacity
-          style={styles.scrollTopButton}
+          style={currentStyles.scrollTopButton}
           onPress={scrollToTopAndRefresh}
           activeOpacity={0.8}
         >

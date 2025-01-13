@@ -219,7 +219,7 @@ export default function Search() {
         console.error('Could not determine username for profile navigation');
         return;
       }
-      router.push(`/screens/profile/${username}`);
+      router.push(`/(modals)/(profile)/${username}`);
     } catch (error) {
       console.error('Error navigating to profile:', error);
     }

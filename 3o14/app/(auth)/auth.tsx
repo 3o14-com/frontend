@@ -15,7 +15,7 @@ export default function Auth() {
       const server = await StorageService.get('server');
       if (!server) {
         setTimeout(() => {
-          router.replace('/');
+          router.replace('/(auth)');
         }, 0);
         return;
       }
@@ -30,7 +30,7 @@ export default function Auth() {
         }
 
         setTimeout(() => {
-          router.replace('/');
+          router.replace('/(auth)');
         }, 0);
       } else {
         const initialUrl = await Linking.getInitialURL();
@@ -57,7 +57,7 @@ export default function Auth() {
     } catch (err) {
       console.error('Auth error:', err instanceof Error ? err.message : String(err));
       setTimeout(() => {
-        router.replace('/');
+        router.replace('/(auth)');
       }, 0);
     }
   }, [handleAuthCode, router]);

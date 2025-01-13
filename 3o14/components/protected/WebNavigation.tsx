@@ -7,11 +7,11 @@ import { useTheme } from '@/hooks/useTheme';
 import Confirm from '@/components/common/Confirm';
 
 type ProtectedPath =
-  | '/protected'
-  | '/protected/local'
-  | '/protected/compose'
-  | '/protected/search'
-  | '/protected/profile';
+  | '/(tabs)'
+  | '/(tabs)/local'
+  | '/(tabs)/compose'
+  | '/(tabs)/search'
+  | '/(tabs)/profile';
 
 interface NavigationItem {
   name: string;
@@ -21,7 +21,7 @@ interface NavigationItem {
     outline: keyof typeof Ionicons['glyphMap'];
   };
   size?: number;
-  path: ProtectedPath | '/protected';
+  path: ProtectedPath | '/(tabs)';
 }
 
 export const navigationItems: NavigationItem[] = [
@@ -29,32 +29,32 @@ export const navigationItems: NavigationItem[] = [
     name: 'index',
     title: 'Home',
     icon: { focused: 'home', outline: 'home-outline' },
-    path: '/protected',
+    path: '/(tabs)',
   },
   {
     name: 'local',
     title: 'Local',
     icon: { focused: 'globe', outline: 'globe-outline' },
-    path: '/protected/local',
+    path: '/(tabs)/local',
   },
   {
     name: 'compose',
     title: 'Compose',
     icon: { focused: 'add-circle', outline: 'add-circle-outline' },
     size: 30,
-    path: '/protected/compose',
+    path: '/(tabs)/compose',
   },
   {
     name: 'search',
     title: 'Search',
     icon: { focused: 'search', outline: 'search-outline' },
-    path: '/protected/search',
+    path: '/(tabs)/search',
   },
   {
     name: 'profile',
     title: 'Profile',
     icon: { focused: 'person', outline: 'person-outline' },
-    path: '/protected/profile',
+    path: '/(tabs)/profile',
   },
 ];
 
@@ -62,19 +62,18 @@ export const navigationItems: NavigationItem[] = [
 const handleLogoutConfirm = async () => {
   try {
     await StorageService.clear();
-    router.push('/');
+    router.push('/(auth)');
   } catch (error) {
     console.error("Failed to logout:", error);
   }
 };
 
 interface WebNavigationProps {
-  currentRoute: string;
   theme: ReturnType<typeof useTheme>;
   onLogout: () => Promise<void>;
 }
 
-export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, theme }) => {
+export const WebNavigation: React.FC<WebNavigationProps> = ({ theme }) => {
   const currentPath = usePathname();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const styles = StyleSheet.create({
@@ -121,7 +120,10 @@ export const WebNavigation: React.FC<WebNavigationProps> = ({ currentRoute, them
     <View style={[styles.webNavContainer, { backgroundColor: theme.colors.background }]}>
       <View style={styles.navigationSection}>
         {navigationItems.map((item) => {
-          const isExactMatch = currentPath === item.path;
+          const isExactMatch =
+            item.path === '/(tabs)'
+              ? currentPath === '/(tabs)' || currentPath === '/'
+              : currentPath.startsWith(item.path.replace('/(tabs)', ''));
 
           return (
             <Pressable

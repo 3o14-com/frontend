@@ -13,7 +13,7 @@ interface WebLayoutProps {
 const handleLogout = async () => {
   try {
     await StorageService.clear();
-    router.push('/');
+    router.push('/(auth)');
   } catch (error) {
     console.error("Failed to logout:", error);
   }
