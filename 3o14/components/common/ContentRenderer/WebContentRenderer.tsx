@@ -15,6 +15,14 @@ declare global {
   }
 }
 
+const containsLatexDelimiters = (content: string = ''): boolean => {
+  // Check for display math \[ \] or inline math \( \)
+  // Using regex with 's' flag to match across multiple lines
+  const displayMathPattern = /\\\[[\s\S]*?\\\]/;
+  const inlineMathPattern = /\\\([\s\S]*?\\\)/;
+  return displayMathPattern.test(content) || inlineMathPattern.test(content);
+};
+
 const WebDisplay = memo(function WebDisplay({
   html,
   width,
@@ -41,13 +49,19 @@ const WebDisplay = memo(function WebDisplay({
   );
 });
 
-export const WebContentRenderer: React.FC<ContentRendererProps> = ({
-  content = '',
+const MathJaxWrapper = memo(function MathJaxWrapper({
+  content,
   width,
-  tagsStyles = {},
-  renderersProps = {},
-  systemFonts = [],
-}) => {
+  tagsStyles,
+  renderersProps,
+  systemFonts,
+}: {
+  content: string;
+  width: number;
+  tagsStyles?: Record<string, any>;
+  renderersProps?: Record<string, any>;
+  systemFonts?: string[];
+}) {
   const [mathReady, setMathReady] = useState(false);
   const [key, setKey] = useState(0);
 
@@ -64,10 +78,8 @@ export const WebContentRenderer: React.FC<ContentRendererProps> = ({
     checkMathJax();
   }, []);
 
-  if (!mathReady || !content) {
-    return (
-      <Text>...</Text>
-    );
+  if (!mathReady) {
+    return <Text>...</Text>;
   }
 
   return (
@@ -82,5 +94,41 @@ export const WebContentRenderer: React.FC<ContentRendererProps> = ({
         />
       </WebMathJax>
     </MathJaxContext>
+  );
+});
+
+export const WebContentRenderer: React.FC<ContentRendererProps> = ({
+  content = '',
+  width,
+  tagsStyles = {},
+  renderersProps = {},
+  systemFonts = [],
+}) => {
+  if (!content) {
+    return <Text>...</Text>;
+  }
+
+  const hasMathContent = containsLatexDelimiters(content);
+
+  if (hasMathContent) {
+    return (
+      <MathJaxWrapper
+        content={content}
+        width={width}
+        tagsStyles={tagsStyles}
+        renderersProps={renderersProps}
+        systemFonts={systemFonts}
+      />
+    );
+  }
+
+  return (
+    <WebDisplay
+      html={content}
+      width={width}
+      tagsStyles={tagsStyles}
+      renderersProps={renderersProps}
+      systemFonts={systemFonts}
+    />
   );
 };
