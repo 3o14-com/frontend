@@ -19,7 +19,6 @@ export default function ModalsLayout() {
             backgroundColor: theme.colors.background,
           },
           presentation: 'modal',
-          animation: 'slide_from_bottom',
         }}
       />
     </WebLayout>
@@ -31,7 +30,6 @@ export default function ModalsLayout() {
           backgroundColor: theme.colors.background,
         },
         presentation: 'modal',
-        animation: 'slide_from_bottom',
       }}
     />
   );
