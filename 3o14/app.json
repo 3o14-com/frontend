@@ -18,7 +18,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/makuro-adaptive.png",
+        "monochromeImage": "./assets/images/makuro-monochrome.png",
       },
       "package": "space.scientiac.x3o14"
     },
