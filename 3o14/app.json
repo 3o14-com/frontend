@@ -19,7 +19,6 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
       },
       "package": "space.scientiac.x3o14"
     },
@@ -34,9 +33,15 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 150,
+          "imageWidth": 140,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#ffffff",
+          "dark": {
+             "image": "./assets/images/splash-icon.png",
+             "imageWidth": 140,
+             "resizeMode": "contain",
+             "backgroundColor": "#0f0f0f"
+          }
         }
       ],
       "expo-video"
