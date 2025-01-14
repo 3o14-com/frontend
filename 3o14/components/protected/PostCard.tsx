@@ -39,6 +39,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const [favouritesCount, setFavouritesCount] = useState(post.favourites_count || 0);
   const [reblogsCount, setReblogsCount] = useState(post.reblogs_count || 0);
   const { user } = useAuth();
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(-1);
 
   const [showModal, setShowModal] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -477,26 +478,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
     }
   };
 
-  const renderMedia = () => {
-    const [selectedMediaIndex, setSelectedMediaIndex] = useState(-1);
-
-    if (!post.media_attachments?.length) return null;
-
-    return (
-      <View style={styles.mediaContainer}>
-        <MediaGrid
-          mediaAttachments={post.media_attachments}
-          onMediaPress={(index) => setSelectedMediaIndex(index)}
-        />
-        <MediaViewer
-          visible={selectedMediaIndex !== -1}
-          mediaItems={post.media_attachments}
-          initialIndex={selectedMediaIndex}
-          onClose={() => setSelectedMediaIndex(-1)}
-        />
-      </View>
-    );
-  };
 
   const renderPoll = () => {
     if (!post.poll) return null;
@@ -684,7 +665,21 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
         </View>
 
         <View style={styles.media}>
-          {post.media_attachments.length > 0 && renderMedia()}
+          {post.media_attachments.length > 0 &&
+
+            <View style={styles.mediaContainer}>
+              <MediaGrid
+                mediaAttachments={post.media_attachments}
+                onMediaPress={(index) => setSelectedMediaIndex(index)}
+              />
+              <MediaViewer
+                visible={selectedMediaIndex !== -1}
+                mediaItems={post.media_attachments}
+                initialIndex={selectedMediaIndex}
+                onClose={() => setSelectedMediaIndex(-1)}
+              />
+            </View>
+          }
         </View>
 
         <View style={styles.pollContainer}>
