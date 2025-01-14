@@ -9,7 +9,7 @@
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
-    let pkgs = nixpkgs.legacyPackages.x86_64-linux;
+    let pkgs = import nixpkgs { system = "x86_64-linux"; config.allowUnfree = true; };
     in {
       packages.x86_64-linux = {
 
@@ -25,8 +25,7 @@
           sdkPkgs.ndk-26-1-10909125
         ]);
 
-        cremulate =
-          pkgs.writeScriptBin "cremulate" # bash
+        cremulate = pkgs.writeScriptBin "cremulate" # bash
           ''
             #!/usr/bin/env sh
             name=$1
@@ -56,6 +55,8 @@
           pkgs.watchman
           pkgs.corretto17
           pkgs.aapt
+          pkgs.xsel
+          pkgs.ngrok
           self.packages.x86_64-linux.android-sdk
           self.packages.x86_64-linux.cremulate
         ];
