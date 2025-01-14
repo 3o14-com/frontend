@@ -22,8 +22,6 @@ import { ProfilePosts } from '@/components/common/Profile/ProfilePosts';
 interface EditableProfile {
   display_name: string;
   bio: string;
-  avatar?: string;
-  header?: string;
 }
 
 export default function ProfileScreen() {

@@ -565,36 +565,6 @@ export const ApiService = {
     if (params.note !== undefined) {
       formData.append('note', params.note);
     }
-    if (params.locked !== undefined) {
-      formData.append('locked', params.locked.toString());
-    }
-    if (params.bot !== undefined) {
-      formData.append('bot', params.bot.toString());
-    }
-    if (params.discoverable !== undefined) {
-      formData.append('discoverable', params.discoverable.toString());
-    }
-
-    // Handle profile fields
-    if (params.fields_attributes) {
-      params.fields_attributes.forEach((field, index) => {
-        formData.append(`fields_attributes[${index}][name]`, field.name);
-        formData.append(`fields_attributes[${index}][value]`, field.value);
-      });
-    }
-
-    // Handle avatar and header images
-    if (params.avatar) {
-      // Assuming avatar is a base64 string
-      const avatarBlob = await (await fetch(params.avatar)).blob();
-      formData.append('avatar', avatarBlob);
-    }
-    if (params.header) {
-      // Assuming header is a base64 string
-      const headerBlob = await (await fetch(params.header)).blob();
-      formData.append('header', headerBlob);
-    }
-
     try {
       const response = await fetch(url, {
         method: 'PATCH',
@@ -620,7 +590,6 @@ export const ApiService = {
     }
   },
 
-  // In /services/api.ts
   async getNotifications(
     server: string,
   ): Promise<NotificationsResponse> {
