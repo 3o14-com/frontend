@@ -2,7 +2,7 @@
   "expo": {
     "name": "3o14",
     "slug": "3o14",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "icon": "./assets/images/icon.png",
     "scheme": "x3o14",
     "platforms": [

@@ -150,13 +150,9 @@ export function Timeline({ type }: TimelineProps) {
 
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    const isScrollingUp = currentOffset < lastScrollY.current;
+    const isNearTop = currentOffset <= SCROLL_THRESHOLD;
 
-    if (currentOffset > SCROLL_THRESHOLD) {
-      setShowScrollTop(isScrollingUp && !isFetchingMore);
-    } else {
-      setShowScrollTop(false);
-    }
+    setShowScrollTop(!isNearTop);
 
     lastScrollY.current = currentOffset;
   };
@@ -174,13 +170,14 @@ export function Timeline({ type }: TimelineProps) {
       position: 'absolute',
       bottom: 20,
       right: 20,
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.background,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
       width: 40,
       height: 40,
       borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
-      opacity: 0.7,
     },
     newPostsBanner: {
       position: 'absolute',
@@ -254,7 +251,6 @@ export function Timeline({ type }: TimelineProps) {
         <TouchableOpacity
           style={styles.scrollTopButton}
           onPress={scrollToTopAndRefresh}
-          activeOpacity={0.8}
         >
           <Ionicons name="arrow-up" size={20} color={theme.colors.text} />
         </TouchableOpacity>
