@@ -166,6 +166,10 @@ export function Timeline({ type }: TimelineProps) {
       flex: 1,
       backgroundColor: theme.colors.background,
     },
+    postContainer: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
     scrollTopButton: {
       position: 'absolute',
       bottom: 20,
@@ -192,7 +196,7 @@ export function Timeline({ type }: TimelineProps) {
       zIndex: 1000,
     },
     bannerText: {
-      color: '#000',
+      color: theme.colors.text,
       fontWeight: 'bold',
     },
   });
@@ -212,7 +216,7 @@ export function Timeline({ type }: TimelineProps) {
           onPress={scrollToTopAndRefresh}
           activeOpacity={0.8}
         >
-          <Ionicons name="newspaper" size={20} color="#000" />
+          <Ionicons name="newspaper" size={20} color={theme.colors.text} />
           <Text style={styles.bannerText}>
             {newPostsCount} New
           </Text>
@@ -223,7 +227,11 @@ export function Timeline({ type }: TimelineProps) {
         ref={flatListRef}
         data={posts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => (
+          <View style={styles.postContainer}>
+            <PostCard post={item} />
+          </View>
+        )}
         onEndReached={handleLoadMore}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -248,7 +256,7 @@ export function Timeline({ type }: TimelineProps) {
           onPress={scrollToTopAndRefresh}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-up" size={20} color="#000" />
+          <Ionicons name="arrow-up" size={20} color={theme.colors.text} />
         </TouchableOpacity>
       )}
     </View>
