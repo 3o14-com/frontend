@@ -1,0 +1,54 @@
+name: Android APK Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18.x]
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: 🏗 Setup Expo and EAS
+        uses: expo/expo-github-action@v7
+        with:
+          token: ${{ secrets.EXPO_TOKEN }}
+          expo-version: latest
+          eas-version: latest
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 👷 Build APK
+        run: |
+          eas build --local \
+            --non-interactive \
+            --output=./app-build.apk \
+            --platform=android \
+            --profile=production
+
+      - name: 🚀 Upload APK to GitHub Releases
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./app-build.apk
+          tag_name: release-${{ github.sha }}
+          name: Android APK Release
+          body: "Automated build for commit ${{ github.sha }}"
+          draft: false
+          prerelease: false
+
+      - name: ✅ Clean up build artifacts
+        run: rm -rf ./app-build.apk
+
