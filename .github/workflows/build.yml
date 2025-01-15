@@ -36,11 +36,30 @@ jobs:
         run: npm install
         working-directory: 3o14
 
-      - name: Setup Java 17
+      - name: 🏗 Setup Java 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      # ✅ Decode and Save Keystore Securely
+      - name: 🛡️ Decode and Prepare Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > 3o14/android/keystores/release.keystore
+
+      # ✅ Generate credentials.json with Secrets
+      - name: 🛡️ Generate credentials.json
+        run: |
+          echo '{
+            "android": {
+              "keystore": {
+                "keystorePath": "android/keystores/release.keystore",
+                "keystorePassword": "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}",
+                "keyAlias": "${{ secrets.ANDROID_KEY_ALIAS }}",
+                "keyPassword": "${{ secrets.ANDROID_KEY_PASSWORD }}"
+              }
+            }
+          }' > 3o14/credentials.json
 
       - name: 🏗 Extract Version from app.json
         id: get_version
@@ -64,5 +83,8 @@ jobs:
           body: "Automated build for version ${{ env.version }}"
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ✅ Clean up build artifacts
-        run: rm -rf 3o14/3o14.apk
+      - name: ✅ Clean up build artifacts and credentials
+        run: |
+          rm -rf 3o14/3o14.apk
+          rm -rf 3o14/android/keystores/release.keystore
+          rm -rf 3o14/credentials.json
