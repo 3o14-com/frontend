@@ -50,7 +50,7 @@ jobs:
         run: |
           eas build --local \
             --non-interactive \
-            --output=./app-build.apk \
+            --output=./3o14.apk \
             --platform=android \
             --profile=production
         working-directory: 3o14
@@ -58,11 +58,11 @@ jobs:
       - name: 🚀 Upload APK to GitHub Releases
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 3o14/app-build.apk
+          artifacts: 3o14/3o14.apk
           tag: v${{ env.version }}
           name: 3o14 v${{ env.version }}
           body: "Automated build for version ${{ env.version }}"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Clean up build artifacts
-        run: rm -rf 3o14/app-build.apk
+        run: rm -rf 3o14/3o14.apk
