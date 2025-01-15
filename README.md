@@ -4,6 +4,8 @@ A fediverse client for android and web, focusing on [3o14.com](https://3o14.com)
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## Install
+[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="58">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/3o14-com/frontend)
 ## To Build
 
 1. Install dependencies
