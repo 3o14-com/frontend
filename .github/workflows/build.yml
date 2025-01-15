@@ -30,6 +30,7 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm install
+        working-directory: 3o14
 
       - name: 👷 Build APK
         run: |
@@ -38,11 +39,12 @@ jobs:
             --output=./app-build.apk \
             --platform=android \
             --profile=production
+        working-directory: 3o14
 
       - name: 🚀 Upload APK to GitHub Releases
         uses: softprops/action-gh-release@v1
         with:
-          files: ./app-build.apk
+          files: 3o14/app-build.apk
           tag_name: release-${{ github.sha }}
           name: Android APK Release
           body: "Automated build for commit ${{ github.sha }}"
@@ -50,5 +52,4 @@ jobs:
           prerelease: false
 
       - name: ✅ Clean up build artifacts
-        run: rm -rf ./app-build.apk
-
+        run: rm -rf 3o14/app-build.apk
