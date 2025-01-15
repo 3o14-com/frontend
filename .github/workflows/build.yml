@@ -45,6 +45,7 @@ jobs:
       # ✅ Decode and Save Keystore Securely
       - name: 🛡️ Decode and Prepare Keystore
         run: |
+          mkdir -p 3o14/android/keystores
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > 3o14/android/keystores/release.keystore
 
       # ✅ Generate credentials.json with Secrets
