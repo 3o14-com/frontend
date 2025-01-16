@@ -93,7 +93,7 @@ export default function NotificationsScreen() {
 
   const handleProfileNavigation = (acct: string | unknown) => {
     if (typeof acct === 'string') {
-      router.push(`/screens/profile/${acct}`);
+      router.push(`/(modals)/(profile)/${acct}`);
     } else {
       console.error("Account ID is not a string:", acct);
     }
