@@ -109,9 +109,9 @@ export default function ProfileScreen() {
         posts: refresh
           ? posts || []
           : [
-              ...prev.posts.filter((post) => !posts?.some((newPost) => newPost.id === post.id)),
-              ...(posts || []),
-            ],
+            ...prev.posts.filter((post) => !posts?.some((newPost) => newPost.id === post.id)),
+            ...(posts || []),
+          ],
       }));
 
       if (posts?.length > 0) {
@@ -150,13 +150,13 @@ export default function ProfileScreen() {
 
   const navigateToFollowers = () => {
     if (profile.account) {
-      router.push(`/(modals)/(profile)/${username}/followers`);
+      router.push(`/(modals)/profile/${username}/followers`);
     }
   };
 
   const navigateToFollowing = () => {
     if (profile.account) {
-      router.push(`/(modals)/(profile)/${username}/following`);
+      router.push(`/(modals)/profile/${username}/following`);
     }
   };
 

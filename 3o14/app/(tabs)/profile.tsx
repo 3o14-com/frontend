@@ -126,13 +126,13 @@ export default function ProfileScreen() {
 
   const navigateToFollowers = () => {
     if (profile.account) {
-      router.push(`/(modals)/(profile)/${user?.username}/followers`);
+      router.push(`/(modals)/profile/${user?.username}/followers`);
     }
   };
 
   const navigateToFollowing = () => {
     if (profile.account) {
-      router.push(`/(modals)/(profile)/${user?.username}/following`);
+      router.push(`/(modals)/profile/${user?.username}/following`);
     }
   };
 

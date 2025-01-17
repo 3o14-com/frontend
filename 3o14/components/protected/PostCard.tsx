@@ -527,7 +527,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
       if (user.username === username) {
         router.push(`/(tabs)/profile`);
       } else {
-        router.push(`/(modals)/(profile)/${username}`);
+        router.push(`/(modals)/profile/${username}`);
       }
     } catch (error) {
       console.error('Error navigating to profile:', error);
@@ -574,7 +574,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const handleProfileNavigation = (acct: string | unknown) => {
     if (typeof acct === 'string') {
-      router.push(`/(modals)/(profile)/${acct}`);
+      router.push(`/(modals)/profile/${acct}`);
     } else {
       console.error("Account ID is not a string:", acct);
     }

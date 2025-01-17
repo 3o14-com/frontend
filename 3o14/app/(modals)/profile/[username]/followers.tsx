@@ -18,26 +18,27 @@ import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function FollowingScreen() {
+export default function FollowersScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
   const router = useRouter();
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [following, setFollowing] = useState<Account[]>([]);
+  const [followers, setFollowers] = useState<Account[]>([]);
   const [nextPage, setNextPage] = useState<string | undefined>();
   const [accountId, setAccountId] = useState<string | null>(null);
   const [server, setServer] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth();
 
-  // Function to process following accounts one by one
-  const processFollowing = useCallback(async (accounts: Account[]) => {
+
+  // Function to process followers one by one
+  const processFollowers = useCallback(async (accounts: Account[]) => {
     setIsProcessing(true);
     for (const account of accounts) {
-      setFollowing(prev => {
-        if (prev.some(f => f.id === account.id)) return prev;
+      setFollowers(prev => {
+        if (prev.some(f => f.acct === account.id)) return prev;
         return [...prev, account];
       });
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -45,30 +46,30 @@ export default function FollowingScreen() {
     setIsProcessing(false);
   }, []);
 
-  const fetchFollowing = useCallback(
+  const fetchFollowers = useCallback(
     async (page?: string) => {
       if (!server || !accountId) return;
 
       try {
-        const response = await ApiService.getFollowing(server, accountId, page);
+        const response = await ApiService.getFollowers(server, accountId, page);
 
         if (page) {
-          processFollowing(response.accounts);
+          processFollowers(response.accounts);
         } else {
-          setFollowing([]);
-          processFollowing(response.accounts);
+          setFollowers([]);
+          processFollowers(response.accounts);
         }
 
         setNextPage(response.next_page);
       } catch (error) {
-        console.error('Error fetching following:', error);
+        console.error('Error fetching followers:', error);
       } finally {
         setIsLoading(false);
         setIsRefreshing(false);
         setIsLoadingMore(false);
       }
     },
-    [server, accountId, processFollowing]
+    [server, accountId, processFollowers]
   );
 
   const fetchAccountId = useCallback(async () => {
@@ -93,19 +94,19 @@ export default function FollowingScreen() {
 
   useEffect(() => {
     if (accountId) {
-      fetchFollowing();
+      fetchFollowers();
     }
-  }, [accountId, fetchFollowing]);
+  }, [accountId, fetchFollowers]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    fetchFollowing();
+    fetchFollowers();
   };
 
   const handleLoadMore = () => {
     if (nextPage && !isLoadingMore && !isProcessing) {
       setIsLoadingMore(true);
-      fetchFollowing(nextPage);
+      fetchFollowers(nextPage);
     }
   };
 
@@ -113,13 +114,13 @@ export default function FollowingScreen() {
     if (user?.username === account) {
       router.replace(`/(tabs)/profile`);
     } else {
-      router.push(`/(modals)/(profile)/${account}`);
+      router.push(`/(modals)/profile/${account}`);
     }
   };
 
   const openWebView = useCallback(() => {
     if (server && username) {
-      const url = `https://${server}/@${username}/following`;
+      const url = `https://${server}/@${username}/followers`;
       Linking.openURL(url);
     }
   }, [server, username]);
@@ -191,14 +192,14 @@ export default function FollowingScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Following',
+          title: 'Followers',
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.colors.background,
           },
-          headerShadowVisible: false,
-          presentation: 'transparentModal',
           headerTintColor: theme.colors.text,
+          presentation: 'transparentModal',
+          headerShadowVisible: false,
           headerLeft: () => (
             <TouchableOpacity style={{ padding: 8 }} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
@@ -213,11 +214,11 @@ export default function FollowingScreen() {
       />
       <FlatList
         style={styles.container}
-        data={following}
+        data={followers}
         renderItem={renderItem}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
