@@ -512,7 +512,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
 
   const handlePostPress = () => {
-    router.push(`/(modals)/${post.id}`);
+    router.push(`/(modals)/(threads)/${post.id}`);
   };
 
   const handleProfilePress = () => {
@@ -582,7 +582,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
 
   const handleReplyToPress = () => {
     if (post.in_reply_to_id && post.in_reply_to_account_id) {
-      router.push(`/(modals)/${post.in_reply_to_id}`);
+      router.push(`/(modals)/(threads)/${post.in_reply_to_id}`);
     }
   };
 

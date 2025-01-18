@@ -157,7 +157,6 @@ export default function ProfileScreen() {
       await ApiService.updateProfile(server, {
         display_name: formValues.display_name,
         note: formValues.bio,
-        header: editableProfile.header,
       });
 
       handleRefresh()
