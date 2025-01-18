@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, FlatList, StyleSheet, StatusBar, Alert, RefreshControl, TouchableOpacity, Text } from 'react-native';
+import { View, FlatList, StyleSheet, StatusBar, RefreshControl, TouchableOpacity, Text } from 'react-native';
 import { PostCard } from '@/components/protected/PostCard';
 import { Loading } from '@/components/common/Loading';
-import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
@@ -26,7 +25,6 @@ export function Timeline({ type }: TimelineProps) {
   const [newPostsCount, setNewPostsCount] = useState(0);
   const [showNewPostsBanner, setShowNewPostsBanner] = useState(false);
 
-  const { logout } = useAuth();
   const theme = useTheme();
   const flatListRef = useRef<FlatList>(null);
   const lastScrollY = useRef(0);
@@ -38,8 +36,7 @@ export function Timeline({ type }: TimelineProps) {
     try {
       const server = await StorageService.get('server');
       if (!server) {
-        Alert.alert('Error', 'Server configuration not found. Please login again.');
-        logout();
+        console.error('Server configuration not found');
         return;
       }
 
@@ -61,16 +58,9 @@ export function Timeline({ type }: TimelineProps) {
         errorMessage.toLowerCase().includes('forbidden');
 
       if (isAuthError) {
-        Alert.alert(
-          'Authentication Error',
-          'Your session has expired. Please login again.',
-          [{ text: 'OK', onPress: () => logout() }]
-        );
+        console.error('Authentication error:', errorMessage);
       } else {
-        Alert.alert(
-          'Network Error',
-          'Failed to fetch timeline. Please try again later.'
-        );
+        console.error('Failed to fetch timeline:', errorMessage);
       }
     } finally {
       setIsLoading(false);
