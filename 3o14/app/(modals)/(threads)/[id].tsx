@@ -163,7 +163,6 @@ export default function ThreadScreen() {
           },
           headerTintColor: theme.colors.text,
           headerShadowVisible: false,
-          presentation: 'transparentModal',
           headerLeft: () => (
             <TouchableOpacity
               style={styles.backButton}
