@@ -512,7 +512,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
 
   const handlePostPress = () => {
-    router.push(`/(modals)/(threads)/${post.id}`);
+    // Get the current URL path
+    const currentPath = window.location.pathname;
+    // Remove the leading slash and get the ID
+    const currentId = currentPath.substring(1);
+
+    // Only navigate if current ID is different from post ID
+    if (currentId !== post.id.toString()) {
+      router.push(`/(modals)/(threads)/${post.id}`);
+    }
   };
 
   const handleProfilePress = () => {
