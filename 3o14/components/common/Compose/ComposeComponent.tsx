@@ -46,14 +46,28 @@ export const ComposeComponent: React.FC<ComposeProps> = ({
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const { height } = useWindowDimensions();
+
+  const getInitialVisibility = () => {
+    if (replyToPost?.visibility) {
+
+      // Find matching visibility option from the original post
+      const matchingVisibility = VISIBILITY_OPTIONS.find(
+        option => option.type === replyToPost.visibility
+      );
+      return matchingVisibility || VISIBILITY_OPTIONS[0];
+    }
+    return VISIBILITY_OPTIONS[0]; // Default to public if not replying
+  };
+
   const [content, setContent] = useState(() => {
     return replyToPost ? `@${replyToPost.account.acct} ` : initialContent;
   });
+  const [visibility, setVisibility] = useState<Visibility>(getInitialVisibility());
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mediaAttachments, setMediaAttachments] = useState<MediaUploadResponse[]>([]);
   const [contentWarning, setContentWarning] = useState('');
   const [showContentWarning, setShowContentWarning] = useState(false);
-  const [visibility, setVisibility] = useState<Visibility>(VISIBILITY_OPTIONS[0]);
   const [isSelectingVisibility, setIsSelectingVisibility] = useState(false);
   const params = useLocalSearchParams() as unknown as ComposeRouteParams;
   const [isSelectingMention, setIsSelectingMention] = useState(false);

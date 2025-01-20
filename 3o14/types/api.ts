@@ -178,6 +178,12 @@ export interface UpdateProfileResponse {
   }>;
 }
 
+export interface FileObject {
+  uri: string;
+  type: string;
+  name: string;
+}
+
 export interface Notification {
   id: string;
   type: 'mention' | 'reblog' | 'favourite' | 'follow' | 'poll' | 'follow_request';
