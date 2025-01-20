@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Share, Linking, Platform, View, Text, StyleSheet, Image, useWindowDimensions, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import { Post } from '@/types/api';
 import { defaultSystemFonts, MixedStyleDeclaration } from 'react-native-render-html';
 import { format } from 'date-fns';
@@ -31,6 +31,7 @@ interface PostCardProps {
 
 export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBoost = false }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const [server, setServer] = useState<string | null>(null);
@@ -512,12 +513,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onReblog, isBo
   const formattedDate = format(new Date(post.created_at), 'PPPpp');
 
   const handlePostPress = () => {
-    // Get the current URL path
-    const currentPath = window.location.pathname;
-    // Remove the leading slash and get the ID
-    const currentId = currentPath.substring(1);
+    // Guard against undefined pathname
+    if (!pathname) {
+      router.push(`/(modals)/(threads)/${post.id}`);
+      return;
+    }
 
-    // Only navigate if current ID is different from post ID
+    // Extract the ID, removing any leading or trailing slashes
+    const currentId = pathname.replace(/^\/+|\/+$/g, '');
+
     if (currentId !== post.id.toString()) {
       router.push(`/(modals)/(threads)/${post.id}`);
     }
