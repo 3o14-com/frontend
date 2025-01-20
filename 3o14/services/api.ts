@@ -1,6 +1,6 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
-import type { Poll, NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
+import type { Poll, NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams, FileObject } from '@/types/api';
 import { Platform } from 'react-native'
 
 
@@ -565,33 +565,46 @@ export const ApiService = {
       formData.append('note', params.note);
     }
 
+    // Helper function to create appropriate file object based on platform
+    const createFileObject = (uri: string, fieldName: string): string | FileObject => {
+      if (Platform.OS === 'web') {
+        return uri; // For web, use the file path directly
+      } else {
+        // React Native environment (iOS or Android)
+        const fileObject: FileObject = {
+          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
+          type: 'image/jpeg',
+          name: `${fieldName}.jpg`
+        };
+        return fileObject;
+      }
+    };
+
     // Append image files if provided
     if (params.avatar) {
-      const avatarFile = {
-        uri: Platform.OS === 'ios' ? params.avatar.replace('file://', '') : params.avatar,
-        type: 'image/jpeg',
-        name: 'avatar.jpg'
-      };
+      const avatarFile = createFileObject(params.avatar, 'avatar');
       formData.append('avatar', avatarFile as any);
     }
-
     if (params.header) {
-      const headerFile = {
-        uri: Platform.OS === 'ios' ? params.header.replace('file://', '') : params.header,
-        type: 'image/jpeg',
-        name: 'header.jpg'
-      };
+      const headerFile = createFileObject(params.header, 'header');
       formData.append('header', headerFile as any);
+    }
+
+    // Set up headers
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${accessToken}`,
+      'Accept': 'application/json',
+    };
+
+    // Only add Content-Type for React Native platforms
+    if (Platform.OS !== 'web') {
+      headers['Content-Type'] = 'multipart/form-data';
     }
 
     try {
       const response = await fetch(url, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
+        headers,
         body: formData,
       });
 
