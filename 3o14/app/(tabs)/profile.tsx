@@ -7,8 +7,10 @@ import {
   TextInput,
   ScrollView,
   Text,
+  Image,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { ApiService } from '@/services/api';
 import { StorageService } from '@/services/storage';
 import { Account, Post } from '@/types/api';
@@ -22,6 +24,8 @@ import { ProfilePosts } from '@/components/common/Profile/ProfilePosts';
 interface EditableProfile {
   display_name: string;
   bio: string;
+  avatar?: string;
+  header?: string;
 }
 
 export default function ProfileScreen() {
@@ -50,6 +54,8 @@ export default function ProfileScreen() {
   const [editableProfile, setEditableProfile] = useState<EditableProfile>({
     display_name: '',
     bio: '',
+    avatar: undefined,
+    header: undefined,
   });
 
   useEffect(() => {
@@ -60,6 +66,34 @@ export default function ProfileScreen() {
       });
     }
   }, [profile.account]);
+
+  const pickImage = async (type: 'avatar' | 'header') => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to update your profile images.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images" as const,
+        allowsEditing: true,
+        aspect: type === 'avatar' ? [1, 1] : [16, 9],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0].uri) {
+        setEditableProfile(prev => ({
+          ...prev,
+          [type]: result.assets[0].uri,
+        }));
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      alert('Error selecting image. Please try again.');
+    }
+  };
 
   const fetchProfile = async (refresh = false) => {
     if (!user || fetchError) return; // Prevent fetching if there's already an error
@@ -140,7 +174,12 @@ export default function ProfileScreen() {
     router.push('/(modals)/notifications');
   };
 
-  const handleSaveProfile = async (formValues: { display_name: string; bio: string }) => {
+  const handleSaveProfile = async (formValues: {
+    display_name: string;
+    bio: string;
+    avatar?: string;
+    header?: string;
+  }) => {
     if (!profile.account) return;
 
     try {
@@ -151,25 +190,74 @@ export default function ProfileScreen() {
       setEditableProfile(prev => ({
         ...prev,
         display_name: formValues.display_name,
-        bio: formValues.bio
+        bio: formValues.bio,
+        avatar: formValues.avatar,
+        header: formValues.header,
       }));
 
       await ApiService.updateProfile(server, {
         display_name: formValues.display_name,
         note: formValues.bio,
+        avatar: formValues.avatar,
+        header: formValues.header,
       });
 
-      handleRefresh()
-
+      handleRefresh();
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
+      alert('Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const styles = StyleSheet.create({
+    imageContainer: {
+      width: '100%',
+      marginBottom: 16,
+      borderRadius: theme.borderRadius.medium,
+      overflow: 'hidden',
+    },
+    headerImage: {
+      width: '100%',
+      height: 200,
+      resizeMode: 'cover',
+    },
+    headerPlaceholder: {
+      width: '100%',
+      height: 200,
+      backgroundColor: theme.colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarContainer: {
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    avatarImage: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 8,
+    },
+    avatarPlaceholder: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: theme.colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
+    avatarText: {
+      fontSize: 14,
+      marginTop: 4,
+    },
+    placeholderText: {
+      marginTop: 8,
+      fontSize: 14,
+    },
     container: {
       flex: 1,
       backgroundColor: theme.colors.background,
@@ -217,7 +305,9 @@ export default function ProfileScreen() {
   const renderEditingForm = () => {
     const [formValues, setFormValues] = useState({
       display_name: editableProfile.display_name,
-      bio: stripHtml(editableProfile.bio)
+      bio: stripHtml(editableProfile.bio),
+      avatar: editableProfile.avatar,
+      header: editableProfile.header,
     });
 
     function stripHtml(html: string): string {
@@ -235,6 +325,46 @@ export default function ProfileScreen() {
         style={styles.editingContainer}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Header Image Picker */}
+        <TouchableOpacity
+          style={styles.imageContainer}
+          onPress={() => pickImage('header')}
+        >
+          {formValues.header ? (
+            <Image
+              source={{ uri: formValues.header }}
+              style={styles.headerImage}
+            />
+          ) : (
+            <View style={styles.headerPlaceholder}>
+              <Ionicons name="image-outline" size={32} color={theme.colors.textSecondary} />
+              <Text style={[styles.placeholderText, { color: theme.colors.textSecondary }]}>
+                Tap to update header image
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Avatar Image Picker */}
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={() => pickImage('avatar')}
+        >
+          {formValues.avatar ? (
+            <Image
+              source={{ uri: formValues.avatar }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person-outline" size={32} color={theme.colors.textSecondary} />
+            </View>
+          )}
+          <Text style={[styles.avatarText, { color: theme.colors.textSecondary }]}>
+            Tap to update profile picture
+          </Text>
+        </TouchableOpacity>
+
         <TextInput
           style={styles.input}
           value={formValues.display_name}

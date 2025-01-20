@@ -1,6 +1,7 @@
 import { StorageService } from './storage';
 import { API_ENDPOINTS } from '@/constants/api';
 import type { Poll, NotificationsResponse, CreatePostParams, MediaUploadResponse, Relationship, Account, Post, Context, FollowersResponse, FollowingResponse, ProfileResponse, UpdateProfileResponse, UpdateProfileParams } from '@/types/api';
+import { Platform } from 'react-native'
 
 
 export const ApiService = {
@@ -554,8 +555,6 @@ export const ApiService = {
     if (!accessToken) throw new Error('Not authenticated');
 
     const url = `https://${server}${API_ENDPOINTS.UPDATE_CREDENTIALS}`;
-
-    // Create FormData instance for multipart/form-data request
     const formData = new FormData();
 
     // Append text fields
@@ -565,11 +564,33 @@ export const ApiService = {
     if (params.note !== undefined) {
       formData.append('note', params.note);
     }
+
+    // Append image files if provided
+    if (params.avatar) {
+      const avatarFile = {
+        uri: Platform.OS === 'ios' ? params.avatar.replace('file://', '') : params.avatar,
+        type: 'image/jpeg',
+        name: 'avatar.jpg'
+      };
+      formData.append('avatar', avatarFile as any);
+    }
+
+    if (params.header) {
+      const headerFile = {
+        uri: Platform.OS === 'ios' ? params.header.replace('file://', '') : params.header,
+        type: 'image/jpeg',
+        name: 'header.jpg'
+      };
+      formData.append('header', headerFile as any);
+    }
+
     try {
       const response = await fetch(url, {
         method: 'PATCH',
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
         body: formData,
       });
@@ -588,6 +609,40 @@ export const ApiService = {
         `Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
+  },
+
+  async updateAvatar(
+    server: string,
+    imageUri: string
+  ): Promise<UpdateProfileResponse> {
+    return this.updateProfile(server, {
+      avatar: imageUri
+    });
+  },
+
+  async updateHeader(
+    server: string,
+    imageUri: string
+  ): Promise<UpdateProfileResponse> {
+    return this.updateProfile(server, {
+      header: imageUri
+    });
+  },
+
+  async deleteAvatar(
+    server: string
+  ): Promise<UpdateProfileResponse> {
+    return this.updateProfile(server, {
+      avatar: undefined
+    });
+  },
+
+  async deleteHeader(
+    server: string
+  ): Promise<UpdateProfileResponse> {
+    return this.updateProfile(server, {
+      header: undefined
+    });
   },
 
   async getNotifications(
