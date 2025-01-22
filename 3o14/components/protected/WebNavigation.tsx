@@ -258,7 +258,7 @@ export const RightSidebar: React.FC<{ theme: ReturnType<typeof useTheme> }> = ({
       <View style={styles.topSection}>
         <Text style={styles.title}>A Decentralized Social Media for Scientific Communication</Text>
         <Text style={styles.description}>
-          A federated social media focusing on scientific communication. We, the people of science, share a universal language of discovery.
+          A federated social media for scientific communicators.
         </Text>
         <Text>-</Text>
         <Text style={styles.description}>
