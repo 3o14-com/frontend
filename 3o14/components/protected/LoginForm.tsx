@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 
 export const LoginForm: React.FC = () => {
-  const [server, setServer] = useState('fosstodon.org');
+  const [server, setServer] = useState('');
   const { login, isLoading } = useAuth();
   const theme = useTheme();
 

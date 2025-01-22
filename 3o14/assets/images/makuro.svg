@@ -9,9 +9,9 @@
    id="svg1"
    inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
    sodipodi:docname="makuro.svg"
-   inkscape:export-filename="makuro-adaptive.png"
-   inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96"
+   inkscape:export-filename="adaptive-icon.png"
+   inkscape:export-xdpi="1200"
+   inkscape:export-ydpi="1200"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -27,9 +27,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="4.689718"
-     inkscape:cx="57.999223"
+     inkscape:cx="58.212455"
      inkscape:cy="53.627958"
-     inkscape:window-width="1254"
+     inkscape:window-width="1435"
      inkscape:window-height="858"
      inkscape:window-x="26"
      inkscape:window-y="23"
@@ -151,14 +151,6 @@
          in="fbSourceGraphic" />
     </filter>
   </defs>
-  <rect
-     style="fill:#1c4ca0;fill-opacity:1;stroke-width:1.59817"
-     id="rect1"
-     width="28.575001"
-     height="28.575001"
-     x="0"
-     y="0"
-     inkscape:label="backdrop" />
   <g
      inkscape:label="makuro"
      inkscape:groupmode="layer"
@@ -240,33 +232,33 @@
     <g
        id="g11-1"
        inkscape:label="parted"
-       style="display:inline;fill:#1c4ca0;fill-opacity:1"
+       style="display:inline;fill:#3a14ff;fill-opacity:1"
        transform="matrix(0.01857594,-0.01857594,0.01857592,0.01857592,4.7766284,14.28751)"
        mask="url(#mask-powermask-path-effect3-61)">
       <g
          id="g2-60"
          inkscape:label="two"
          clip-path="url(#clipPath6-5-8)"
-         style="display:inline;opacity:1;fill:#1c4ca0;fill-opacity:1"
+         style="display:inline;opacity:1;fill:#3a14ff;fill-opacity:1"
          transform="rotate(90,256,255.9995)">
         <path
            id="rect2-2-6"
-           style="fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="4"
            d="m 6,405.99899 h 500 v 100 H 6 Z" />
         <path
            id="rect2-5-2"
-           style="fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="3"
            d="m 6,272.66599 h 500 v 100 H 6 Z" />
         <path
            id="rect2-6"
-           style="fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="2"
            d="m 6,139.33299 h 500 v 100 H 6 Z" />
         <path
            id="rect2-7-1"
-           style="fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="1"
            d="M 6,6 H 506 V 106 H 6 Z" />
       </g>
@@ -275,44 +267,44 @@
          inkscape:label="one"
          clip-path="url(#clipPath6-3-75-9)"
          transform="matrix(0,1,1,0,5.0708008e-4,0)"
-         style="fill:#1c4ca0;fill-opacity:1">
+         style="fill:#3a14ff;fill-opacity:1">
         <path
            id="rect2-2-2-7"
-           style="opacity:1;fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="opacity:1;fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="4"
            d="M 6,406 H 506 V 506 H 6 Z" />
         <path
            id="rect2-5-6-0"
-           style="opacity:1;fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="opacity:1;fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="3"
            d="m 6,272.66599 h 500 v 100 H 6 Z" />
         <path
            id="rect2-1-9"
-           style="opacity:1;fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="opacity:1;fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="2"
            d="m 6,139.33299 h 500 v 100 H 6 Z" />
         <path
            id="rect2-7-8-3"
-           style="opacity:1;fill:#1c4ca0;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
+           style="opacity:1;fill:#3a14ff;fill-opacity:1;fill-rule:evenodd;stroke-width:2.133"
            inkscape:label="1"
            d="M 6,6 H 506 V 106 H 6 Z" />
       </g>
-      <g
-         id="g7"
-         inkscape:label="eyes"
-         transform="matrix(-39.169175,39.169206,-39.169175,-39.169206,753.57483,256.18152)"
-         style="display:inline;fill:#1c4ca0;fill-opacity:1">
-        <path
-           id="rect7-8"
-           transform="rotate(45)"
-           d="M 9.4323168,0.44897708 H 10.942503 V 1.9591635 H 9.4323168 Z"
-           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.328696" />
-        <path
-           id="rect7-8-1"
-           transform="rotate(45)"
-           d="m 7.0225697,-1.9525862 h 1.5101864 v 1.51018646 H 7.0225697 Z"
-           style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.328696" />
-      </g>
+    </g>
+    <g
+       id="g7"
+       inkscape:label="eyes"
+       transform="matrix(-2.0752998e-7,1.4552083,-1.4552083,2.0752998e-7,23.533797,5.0479566)"
+       style="display:inline;fill:#ffffff;fill-opacity:1">
+      <path
+         id="rect7-8"
+         transform="rotate(45)"
+         d="M 9.4323168,0.44897708 H 10.942503 V 1.9591635 H 9.4323168 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.328696" />
+      <path
+         id="rect7-8-1"
+         transform="rotate(45)"
+         d="m 7.0225697,-1.9525862 h 1.5101864 v 1.51018646 H 7.0225697 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke-width:0.328696" />
     </g>
   </g>
 </svg>

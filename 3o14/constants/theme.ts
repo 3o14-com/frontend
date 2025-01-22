@@ -2,7 +2,7 @@ import type { Theme } from '@/types/theme';
 
 export const LIGHT_THEME: Theme = {
   colors: {
-    primary: '#f00040',
+    primary: '#3a14ff',
     background: '#ffffff',
     text: '#333333',
     textSecondary: 'gray',
@@ -24,7 +24,7 @@ export const LIGHT_THEME: Theme = {
 
 export const DARK_THEME: Theme = {
   colors: {
-    primary: '#f00040',
+    primary: '#3141f0',
     background: '#0f0f0f',
     text: '#ffffff',
     textSecondary: 'gray',
