@@ -237,14 +237,16 @@ export function Timeline({ type }: TimelineProps) {
         ListFooterComponent={isFetchingMore ? <Loading /> : null}
       />
 
-      {showScrollTop && (
-        <TouchableOpacity
-          style={styles.scrollTopButton}
-          onPress={scrollToTopAndRefresh}
-        >
+      <TouchableOpacity
+        style={styles.scrollTopButton}
+        onPress={scrollToTopAndRefresh}
+      >
+        {showScrollTop ? (
           <Ionicons name="arrow-up" size={20} color={theme.colors.text} />
-        </TouchableOpacity>
-      )}
+        ) : (
+          <Ionicons name="reload" size={20} color={theme.colors.text} />
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
