@@ -84,7 +84,7 @@ const MathJaxWrapper = memo(function MathJaxWrapper({
 
   return (
     <MathJaxContext key={key} config={mathJaxConfig}>
-      <WebMathJax onError={(error) => console.error('MathJax error:', error)}>
+      <WebMathJax dynamic onError={(error) => console.error('MathJax error:', error)}>
         <WebDisplay
           html={content}
           width={width}
