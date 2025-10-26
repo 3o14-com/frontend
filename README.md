@@ -1,6 +1,6 @@
 # 3o14 `(frontend)`
 
-A fediverse client for android and web, focusing on [3o14.com](https://3o14.com) a federated social media for Scientific Communicators.
+A fediverse client for android and web, focusing on [3o14.com](https://scientiac.space/blog/3o14-social/) a federated social media for Scientific Communicators.
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
